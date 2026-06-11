@@ -16,7 +16,7 @@
 
 	let confirmOpen = $state(false);
 	let closing = $state(false);
-	let dayView = $state<Day>();
+	let dayView = $state<Day | undefined>();
 	let reduceMotion = $state(false);
 
 	onMount(() => {
@@ -27,24 +27,28 @@
 		dayView = data.day;
 	});
 
+	const activeDay = $derived(dayView ?? data.day);
+
 	const listMotionMs = $derived(reduceMotion ? 0 : 220);
 	const emptyFadeMs = $derived(reduceMotion ? 0 : 200);
 	const emptyFadeDelay = $derived(reduceMotion ? 0 : 140);
 
-	const isClosed = $derived(dayView?.status === 'closed');
-	const openTaskCount = $derived(dayView?.tasks.filter((t) => t.status === 'open').length ?? 0);
+	const isClosed = $derived(activeDay?.status === 'closed');
+	const openTaskCount = $derived(activeDay?.tasks.filter((t) => t.status === 'open').length ?? 0);
 	const sortedTasks = $derived(
-		[...(dayView?.tasks ?? [])].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0)),
+		[...(activeDay?.tasks ?? [])].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0)),
 	);
 
-	const dateLabel = $derived(
-		new Intl.DateTimeFormat('en-GB', {
+	const dateLabel = $derived.by(() => {
+		const date = activeDay?.date;
+		if (!date) return '';
+		return new Intl.DateTimeFormat('en-GB', {
 			weekday: 'short',
 			day: 'numeric',
 			month: 'short',
 			timeZone: site.timeZone,
-		}).format(new Date(`${dayView?.date ?? ''}T12:00:00`)),
-	);
+		}).format(new Date(`${date}T12:00:00`));
+	});
 
 	async function toggleTask(taskId: string) {
 		if (!dayView) return;
@@ -108,18 +112,18 @@
 			{site.pageTitle}
 		</p>
 		<h1 class="text-3xl font-semibold tracking-tight">{dateLabel}</h1>
-		{#if dayView && isClosed}
-			<p class="font-mono text-sm text-muted-foreground">{dayView.date}</p>
+		{#if activeDay && isClosed}
+			<p class="font-mono text-sm text-muted-foreground">{activeDay.date}</p>
 		{/if}
 	</header>
 
-	{#if dayView && isClosed}
+	{#if activeDay && isClosed}
 		<section class="day-closed rounded-xl border border-dashed border-border bg-muted/30 px-6 py-16 text-center">
 			<p class="text-lg font-medium text-foreground">{site.closedLabel}</p>
 			<p class="mt-2 text-sm text-muted-foreground">Open tasks moved to the next day.</p>
 		</section>
-	{:else if dayView}
-		<AddTaskForm date={dayView.date} />
+	{:else if activeDay}
+		<AddTaskForm date={activeDay.date} />
 
 		{#if sortedTasks.length === 0}
 			<section
