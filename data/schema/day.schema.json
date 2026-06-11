@@ -1,0 +1,71 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "https://task.skarpa.dev/schema/day.schema.json",
+	"title": "Day",
+	"description": "One calendar day of tasks for task.skarpa.dev",
+	"type": "object",
+	"required": ["date", "status", "tasks"],
+	"additionalProperties": false,
+	"properties": {
+		"date": {
+			"type": "string",
+			"pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+			"description": "ISO calendar date (YYYY-MM-DD)"
+		},
+		"status": {
+			"type": "string",
+			"enum": ["open", "closed"]
+		},
+		"closedAt": {
+			"type": ["string", "null"],
+			"description": "ISO 8601 timestamp when the day was closed"
+		},
+		"closedBy": {
+			"type": ["string", "null"],
+			"enum": ["manual", "auto", null]
+		},
+		"tasks": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/task" }
+		}
+	},
+	"$defs": {
+		"task": {
+			"type": "object",
+			"required": ["id", "text", "status", "source"],
+			"additionalProperties": false,
+			"properties": {
+				"id": {
+					"type": "string",
+					"minLength": 1,
+					"description": "Stable id (uuid or jira-derived)"
+				},
+				"text": {
+					"type": "string",
+					"minLength": 1,
+					"description": "Action line; use **word** for emphasis"
+				},
+				"status": {
+					"type": "string",
+					"enum": ["open", "done"]
+				},
+				"source": {
+					"type": "string",
+					"enum": ["manual", "jira", "carryover"]
+				},
+				"jiraKey": {
+					"type": ["string", "null"],
+					"pattern": "^[A-Z][A-Z0-9]+-\\d+$"
+				},
+				"carriedFrom": {
+					"type": ["string", "null"],
+					"pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+				},
+				"sort": {
+					"type": "integer",
+					"minimum": 0
+				}
+			}
+		}
+	}
+}

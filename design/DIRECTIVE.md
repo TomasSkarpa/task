@@ -1,0 +1,298 @@
+# Design directive
+
+Master design document for **task.skarpa.dev**. Combines the general ruleset (layered principles, tokens, IA, a11y) with product-specific decisions for daily recyclable **tasks**.
+
+---
+
+## 1. Product purpose
+
+**task.skarpa.dev** is a single-purpose daily task surface. Not a generic todo app.
+
+| Goal | Detail |
+|------|--------|
+| **Daily focus** | Homepage shows **today only**. No backlog clutter on the main view. |
+| **Recyclable tasks** | Open tasks **spill over** to the next day when a day closes. |
+| **Two close modes** | **Manual close** (user confirms) or **auto close** (day boundary rolls open tasks forward). |
+| **AI-maintained** | Tasks live in git-tracked JSON. Cursor skills and rules edit data; the UI reads and mutates via API in dev. |
+| **Jira bridge** | A skill pulls open Jira work into today's task list via Atlassian MCP. |
+
+**Terminology:** Use **task** everywhere. Never **todo** in UI, code names, or docs.
+
+---
+
+## 2. Layered design system
+
+| Layer | Location | Role |
+|-------|----------|------|
+| Principles | `.cursor/rules/core/` | UX, IA, a11y, Cursor guardrails |
+| Implementation | `.cursor/rules/frontend/` | Layout, forms, flows, accessibility |
+| Product tokens | `design/tokens/` | Color, typography, spacing |
+| Product IA | `design/ia/navigation.md` | Routes and labels |
+| Product voice | `design/content/voice-and-tone.md` | UI chrome and task copy tone |
+| Component patterns | `design/patterns/components.md` | Named UI blocks |
+| Data contract | `data/schema/` | JSON shape for days and tasks |
+| AI workflows | `.cursor/skills/` | Jira sync, close day, task updates |
+
+When in doubt: principles in core rules, product specifics in `design/`, data in `data/days/`, workflows in skills.
+
+---
+
+## 3. Core UX principles
+
+Grounded in **Nielsen's heuristics**:
+
+- **Visibility of system status**: day open/closed, task done/open, sync and close in progress.
+- **Match real-world conventions**: check to complete, confirm before destructive close.
+- **Error prevention and recovery**: double confirm before close day; spillover is explicit, not silent loss.
+
+Also:
+
+- **Low cognitive load**: one screen, one day, minimal chrome.
+- **Progressive disclosure**: confirm modal only on close; no settings on homepage.
+- **Mental model**: "Today is a sheet of tasks. Close the day, open tasks move to tomorrow."
+
+When speed, aesthetics, and accessibility conflict, do not silently drop accessibility or clarity.
+
+---
+
+## 4. Information architecture
+
+**Shallow hierarchy** (2 levels max for v1):
+
+```
+/ (Today)
+```
+
+Future routes (not on homepage): history, settings. Keep them out of v1 scope unless needed.
+
+### Homepage (`/`)
+
+| State | UI |
+|-------|-----|
+| Day **open** | Date label, task list, close-day control |
+| Day **closed** | **"Day is closed"** placeholder; no task editing |
+| Empty open day | Short empty state; still allow close |
+
+### Labels
+
+- Page title: **Today**
+- Close flow: **Close day** → modal **Close this day?**
+- Confirm: **Close day** (destructive) / **Keep working**
+- Carried tasks: metadata **From yesterday** (or source date)
+- Status: **Day is closed**
+
+Noun-based, present tense, no jargon.
+
+---
+
+## 5. Day and task lifecycle
+
+### Day states
+
+| Status | Meaning |
+|--------|---------|
+| `open` | Tasks can be checked; day can be closed manually |
+| `closed` | Read-only; homepage shows closed placeholder |
+
+### Close modes
+
+| Mode | Trigger | Behavior |
+|------|---------|----------|
+| `manual` | User double-confirms close | Set `status: closed`, `closedBy: manual`, move open tasks to next day |
+| `auto` | Cron/skill at day boundary (e.g. 00:00 Europe/Prague) | Same spillover; `closedBy: auto` |
+
+### Task states
+
+| Status | Meaning |
+|--------|---------|
+| `open` | Active for today |
+| `done` | Completed; does not spill over |
+
+### Spillover rules
+
+1. On close, every task with `status: open` is copied to **next calendar day**.
+2. Spillover tasks get `source: carryover`, `carriedFrom: <closed-day-date>`.
+3. Duplicate by `id` or `jiraKey` on the target day: update in place, do not duplicate.
+4. Done tasks stay on the closed day only (historical record).
+
+### Data location
+
+```
+data/days/YYYY-MM-DD.json
+```
+
+One file per calendar day. Source of truth for AI and UI.
+
+See `data/schema/day.schema.json` for the full contract.
+
+---
+
+## 6. Visual system
+
+**Aesthetic:** Flat ink on paper. Light surfaces, near-black text, no gradients. Same family as skarpa.dev CV dossier, tuned for **speed and focus**.
+
+### Color (`design/tokens/colors.md`)
+
+- Surfaces: page `#f7f7f5`, subtle `#ececea`, elevated `#ffffff`
+- Text: default `#0a0a0a`, muted `#5c5c5c`
+- Accent: near-black links and primary actions
+- Errors / destructive: `#b91c1c` with subtle background
+- Contrast: AA minimum; AAA for primary text
+
+### Typography (`design/tokens/typography.md`)
+
+- **IBM Plex Sans** for UI and task text
+- **IBM Plex Mono** for dates and Jira keys only
+- Hierarchy via size and weight, not color noise
+- `--font-scale: 1.075` on `html`
+- One `heading-xl` on homepage (Today + date)
+
+### Spacing (`design/tokens/spacing.md`)
+
+- 4px base unit
+- `content-width: 40rem` slim column
+- Larger gaps between day header, task list, and actions than between task rows
+
+### Emphasis in task text
+
+Wrap important words in `**double asterisks**` in JSON. UI renders via `EmphasisText` (bold, `text-foreground`). Use for Jira keys, deadlines, or blocking terms, not whole sentences.
+
+---
+
+## 7. Component patterns
+
+| Block | Usage |
+|-------|--------|
+| `day-shell` | Page container, max 40rem |
+| `day-header` | Today label + date + open/closed badge |
+| `day-closed` | Placeholder when day is closed |
+| `task-list` | Vertical list of tasks |
+| `task-row` | Checkbox, emphasis text, carryover meta |
+| `close-day` | Primary outline button → confirm dialog |
+| `close-day-dialog` | Modal: summary of open task count, confirm/cancel |
+
+Stack: Svelte 5 runes, shadcn-svelte primitives, Tailwind v4.
+
+---
+
+## 8. Voice and content
+
+### Task copy
+
+- Short, actionable, first line is the verb
+- Specific: `Review **ECOM-4821** checkout hook` not `Work on tickets`
+- No filler: avoid "sync", "align", "leverage" unless literal
+
+### UI chrome (`content/textations/site.md`)
+
+- Plain, direct, calm errors
+- No em dashes in new copy
+
+### AI-authored tasks
+
+When syncing from Jira, format as:
+
+```
+<verb> **<KEY>** <short summary>
+```
+
+Example: `Finish **SFCC-1204** Constructor facet mapping`
+
+---
+
+## 9. Close day interaction (double confirm)
+
+1. **First step:** User clicks **Close day** (outline or secondary; visible only when day is `open`).
+2. **Second step:** Modal opens with:
+   - Title: **Close this day?**
+   - Body: count of open tasks that will move to tomorrow
+   - Actions: **Keep working** (default focus) / **Close day** (destructive)
+3. On confirm: API or skill runs spillover, day becomes `closed`, UI shows **Day is closed**.
+
+Keyboard: focus trap in modal, Escape cancels, visible focus rings.
+
+---
+
+## 10. Accessibility
+
+- Target **WCAG 2.1 AA**
+- Semantic list for tasks (`ul` / `li` or `role="list"`)
+- Checkboxes with accessible labels tied to task text
+- Modal: `role="dialog"`, `aria-modal`, labelled title
+- Do not use color alone for done vs open (checkbox + strikethrough/muted text)
+
+---
+
+## 11. AI workflow design
+
+### Commands (user-facing)
+
+| Command / skill | Purpose |
+|-----------------|--------|
+| `/sync-day` or skill `sync-day-from-jira` | Pull open Jira issues into today's `data/days/<date>.json` |
+| `/close-day` or skill `close-day` | Close today (or given date), spill open tasks |
+| Natural language in Cursor | "Add task …", "Mark **ECOM-1** done" → edit day JSON |
+
+### Rules for agents
+
+- Read `AGENTS.md` and `data/schema/day.schema.json` before editing tasks
+- Never rename "task" to "todo"
+- Preserve existing task `id` and `jiraKey` on merge
+- After Jira sync, commit message pattern: `sync: tasks for YYYY-MM-DD from Jira`
+
+### Jira sync criteria (default)
+
+- Assignee: current user
+- Status: not Done / Closed
+- Optional JQL in skill reference file
+
+---
+
+## 12. Technical stack
+
+- SvelteKit 2 + Svelte 5 (runes)
+- `@sveltejs/adapter-auto` (SSR for day data)
+- shadcn-svelte + Tailwind CSS v4
+- Node ≥ 22.12.0
+- Deploy target: **task.skarpa.dev** (Vercel)
+
+**Persistence note:** v1 uses git-tracked JSON. API routes write to disk in local dev. Production may require blob/KV later; skills always work by editing files directly.
+
+---
+
+## 13. Anti-patterns
+
+- Multi-column dashboard on homepage
+- Backlog + today on the same view
+- Silent spillover without user awareness on manual close
+- Color-only task status
+- Generic "My Tasks" marketing tone
+- Inventing tasks not grounded in Jira or explicit user input during sync
+
+---
+
+## 14. Research alignment
+
+| Finding | Decision |
+|---------|----------|
+| Users need one daily focus | Homepage = today only |
+| Open work must not disappear | Spillover on close |
+| AI is primary editor | JSON + skills + schema |
+| Low friction | Minimal nav, no account UI in v1 |
+
+---
+
+## 15. File map
+
+```
+design/DIRECTIVE.md          ← this file
+design/tokens/*.md
+design/ia/navigation.md
+design/content/voice-and-tone.md
+data/schema/day.schema.json
+data/days/YYYY-MM-DD.json
+content/textations/site.md
+.cursor/skills/sync-day-from-jira/
+.cursor/skills/close-day/
+AGENTS.md
+```

@@ -1,0 +1,35 @@
+{
+	"date": "2026-06-11",
+	"status": "open",
+	"closedAt": null,
+	"closedBy": null,
+	"tasks": [
+		{
+			"id": "jira-ecom-4821",
+			"text": "Review **ECOM-4821** checkout hook for Constructor facet",
+			"status": "done",
+			"source": "jira",
+			"jiraKey": "ECOM-4821",
+			"carriedFrom": null,
+			"sort": 0
+		},
+		{
+			"id": "carry-2026-06-10-1",
+			"text": "Reply to **SFCC** staging import thread",
+			"status": "done",
+			"source": "carryover",
+			"jiraKey": null,
+			"carriedFrom": "2026-06-10",
+			"sort": 1
+		},
+		{
+			"id": "manual-1",
+			"text": "Ship **task.skarpa.dev** day shell",
+			"status": "done",
+			"source": "manual",
+			"jiraKey": null,
+			"carriedFrom": null,
+			"sort": 2
+		}
+	]
+}

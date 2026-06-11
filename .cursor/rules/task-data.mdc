@@ -1,0 +1,15 @@
+---
+description: Rules for editing daily task JSON and terminology
+globs: data/**/*.json
+alwaysApply: false
+---
+
+# Task data files
+
+- Terminology: **task**, never todo
+- One file per day: `data/days/YYYY-MM-DD.json`
+- Validate against `data/schema/day.schema.json`
+- Task text: actionable line; emphasize keys with `**KEY**`
+- Preserve `id` and `jiraKey` when merging; dedupe on `jiraKey`
+- Spillover: `source: carryover`, `carriedFrom: <date>`
+- Do not edit closed days without explicit user request
