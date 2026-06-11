@@ -7,7 +7,7 @@
 | `day-header` | `+page.svelte` | Today + date |
 | `day-closed` | `+page.svelte` | Closed placeholder |
 | `task-list` | `+page.svelte` | Task ul |
-| `task-row` | `TaskRow.svelte` | Checkbox + emphasis text |
+| `task-row` | `TaskRow.svelte` | Checkbox + emphasis text + remove |
 | `add-task` | `AddTaskForm.svelte` | Text input + submit when day is open |
 | `close-day-dialog` | `CloseDayDialog.svelte` | Double confirm modal |
 | `emphasis-text` | `EmphasisText.svelte` | `**bold**` parsing |

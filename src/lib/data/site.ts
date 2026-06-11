@@ -7,6 +7,7 @@ export const site = {
 	addTaskLabel: 'Add task',
 	addTaskPlaceholder: 'What needs doing?',
 	addTaskLoadingLabel: 'Adding…',
+	removeTaskLabel: 'Remove task',
 	closeDayLabel: 'Close day',
 	themeSwitchToDark: 'Switch to dark mode',
 	themeSwitchToLight: 'Switch to light mode',

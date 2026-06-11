@@ -46,5 +46,6 @@ Target: **task.skarpa.dev** on Vercel.
 |-----|------|
 | `POST /api/task/add` | `{ date, text }` |
 | `POST /api/task/toggle` | `{ date, taskId }` |
+| `POST /api/task/remove` | `{ date, taskId }` or `{ date, taskIds: [] }` |
 | `POST /api/task/sync-jira` | `{ date, tasks, replaceAll? }` |
 | `POST /api/day/close` | `{ date }` |

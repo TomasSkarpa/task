@@ -207,6 +207,19 @@ export async function toggleTask(date: string, taskId: string): Promise<Day> {
 	return day;
 }
 
+export async function removeTasks(date: string, taskIds: string[]): Promise<Day> {
+	const day = await loadDay(date);
+
+	if (day.status === 'closed' || taskIds.length === 0) {
+		return day;
+	}
+
+	const remove = new Set(taskIds);
+	day.tasks = day.tasks.filter((task) => !remove.has(task.id));
+	await saveDay(day);
+	return day;
+}
+
 export function countOpenTasks(day: Day): number {
 	return day.tasks.filter((t) => t.status === 'open').length;
 }

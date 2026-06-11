@@ -37,6 +37,17 @@
 		await invalidateAll();
 	}
 
+	async function removeTask(taskId: string) {
+		const response = await fetch('/api/task/remove', {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ date: day.date, taskId }),
+		});
+
+		if (!response.ok) return;
+		await invalidateAll();
+	}
+
 	async function closeDay() {
 		closing = true;
 		try {
@@ -80,7 +91,7 @@
 		{:else}
 			<ul class="task-list space-y-2" aria-label="Today's tasks">
 				{#each sortedTasks as task (task.id)}
-					<TaskRow {task} onToggle={toggleTask} />
+					<TaskRow {task} onToggle={toggleTask} onRemove={removeTask} />
 				{/each}
 			</ul>
 		{/if}

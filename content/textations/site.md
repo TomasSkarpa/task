@@ -20,6 +20,10 @@ Add task
 
 What needs doing?
 
+## Remove task
+
+Remove task
+
 ## Close day
 
 Close day

@@ -45,6 +45,7 @@ Daily **tasks** (never "todos"). One day on the homepage. Recyclable via spillov
 | `/close-day`, close today | `close-day` → `POST https://task.skarpa.dev/api/day/close` |
 | Add task | `POST https://task.skarpa.dev/api/task/add` |
 | Mark task done | `POST https://task.skarpa.dev/api/task/toggle` |
+| Remove task(s) | `POST https://task.skarpa.dev/api/task/remove` |
 
 ## Day lifecycle
 
