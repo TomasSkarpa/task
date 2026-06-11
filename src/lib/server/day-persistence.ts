@@ -17,8 +17,9 @@ function serializeDay(day: Day): string {
 	return `${JSON.stringify(day, null, '\t')}\n`;
 }
 
+/** True when a Vercel Blob store is linked (token and/or store id from dashboard connect). */
 export function usesBlobStorage(): boolean {
-	return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+	return Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
 }
 
 async function loadFromBlob(date: string): Promise<Day | null> {

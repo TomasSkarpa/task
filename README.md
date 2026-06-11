@@ -41,8 +41,8 @@ Target: **task.skarpa.dev** on Vercel.
 | Local dev (no token) | `data/days/*.json` on disk |
 | Production | [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) when `BLOB_READ_WRITE_TOKEN` is set |
 
-1. In the Vercel project: **Storage → Create Blob store → Connect to project**
-2. Copy `BLOB_READ_WRITE_TOKEN` into project env vars (and `.env` for local Blob testing)
-3. Redeploy
+1. In the Vercel project: **Storage → Create Blob store → Connect to project** (your screenshot setup is fine)
+2. Vercel adds `BLOB_STORE_ID` (+ OIDC on deploy). Optional: check **Add a read-write token** for local dev via `vercel env pull`
+3. Redeploy after connecting
 
 API routes: `POST /api/task/add`, `POST /api/task/toggle`, `POST /api/task/sync-jira`, `POST /api/day/close`
