@@ -48,6 +48,7 @@ Target: **task.skarpa.dev** on Vercel.
 | API | Body |
 |-----|------|
 | `GET /api/day` | optional `?date=YYYY-MM-DD` |
+| `GET /api/days` | day summaries for history |
 | `POST /api/task/add` | `{ date, text }` |
 | `POST /api/task/toggle` | `{ date, taskId }` |
 | `POST /api/task/remove` | `{ date, taskId }` or `{ date, taskIds: [] }` |

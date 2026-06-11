@@ -8,9 +8,11 @@
 
 | Label | Route | Notes |
 |-------|-------|-------|
-| Today | `/` | Only primary route in v1 |
+| Today | `/` | Primary task list for the current day |
+| History | `/history` | List of saved days with preview line |
+| Day detail | `/history/YYYY-MM-DD` | Read-only task list for one day |
 
-No header nav in v1. Footer may show date and site name only.
+Header nav: **Today** · **History** (no footer nav in v1).
 
 ### Homepage states
 

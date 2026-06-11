@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
-import { readDay, writeDay } from '$lib/server/day-persistence';
-import type { ClosedBy, Day, Task } from '$lib/types/day';
+import { listStoredDayDates, readDay, writeDay } from '$lib/server/day-persistence';
+import { buildDaySummary } from '$lib/server/day-summary';
+import type { ClosedBy, Day, DaySummary, Task } from '$lib/types/day';
 
 const TZ = 'Europe/Prague';
 
@@ -36,6 +37,27 @@ function emptyDay(date: string): Day {
 export async function loadDay(date: string): Promise<Day> {
 	const day = await readDay(date);
 	return day ?? emptyDay(date);
+}
+
+export async function loadStoredDay(date: string): Promise<Day | null> {
+	return readDay(date);
+}
+
+export async function loadDaySummaries(): Promise<DaySummary[]> {
+	const dates = await listStoredDayDates();
+	const summaries = await Promise.all(
+		dates.map(async (date) => {
+			const day = await readDay(date);
+
+			if (!day) {
+				return null;
+			}
+
+			return buildDaySummary(day);
+		}),
+	);
+
+	return summaries.filter((summary): summary is DaySummary => summary !== null);
 }
 
 export async function saveDay(day: Day): Promise<void> {

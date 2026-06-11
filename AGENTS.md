@@ -24,6 +24,7 @@ Daily **tasks** (never "todos"). One day on the homepage. Recyclable via spillov
 | API routes | `src/routes/api/` |
 | UI labels | `content/textations/site.md` |
 | Homepage | `src/routes/+page.svelte` |
+| History | `src/routes/history/` |
 | Light/dark theme | `src/lib/theme.ts`, `ThemeToggle.svelte`, `layout.css` |
 | Tokens, IA, voice | `design/tokens/`, `design/ia/`, `design/content/` |
 | Jira sync (propose → confirm → API) | `.cursor/skills/sync-day-from-jira/SKILL.md` |

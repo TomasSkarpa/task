@@ -106,6 +106,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>{site.pageTitle} · {site.name}</title>
+</svelte:head>
+
 <DayShell>
 	<header class="day-header mb-8 space-y-2">
 		<p class="text-sm font-medium uppercase tracking-widest text-muted-foreground">

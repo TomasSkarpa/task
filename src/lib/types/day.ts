@@ -20,3 +20,14 @@ export type Day = {
 	closedBy: ClosedBy | null;
 	tasks: Task[];
 };
+
+export type DaySummary = {
+	date: string;
+	status: DayStatus;
+	closedAt: string | null;
+	closedBy: ClosedBy | null;
+	taskCount: number;
+	doneCount: number;
+	openCount: number;
+	preview: string | null;
+};

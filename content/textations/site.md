@@ -8,9 +8,19 @@ Daily tasks. One day at a time.
 
 Today
 
-## States
+History
+
+Past days
 
 Day is closed
+
+Open
+
+No saved days yet.
+
+Back to history
+
+Open today to edit tasks
 
 No tasks yet.
 

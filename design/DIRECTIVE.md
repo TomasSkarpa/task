@@ -57,13 +57,15 @@ When speed, aesthetics, and accessibility conflict, do not silently drop accessi
 
 ## 4. Information architecture
 
-**Shallow hierarchy** (2 levels max for v1):
+**Shallow hierarchy** (2 levels for today + history):
 
 ```
 / (Today)
+/history (Past days)
+/history/YYYY-MM-DD (Day detail, read-only)
 ```
 
-Future routes (not on homepage): history, settings. Keep them out of v1 scope unless needed.
+Settings remain out of scope until needed.
 
 ### Homepage (`/`)
 

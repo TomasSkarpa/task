@@ -1,5 +1,7 @@
-import { get, put } from '@vercel/blob';
+import { get, list, put } from '@vercel/blob';
 import type { Day } from '$lib/types/day';
+
+const DAY_PATH_PATTERN = /^days\/(\d{4}-\d{2}-\d{2})\.json$/;
 
 function blobPathname(date: string): string {
 	return `days/${date}.json`;
@@ -57,4 +59,33 @@ export async function writeDay(day: Day): Promise<void> {
 	}
 
 	await saveToBlob(day);
+}
+
+export async function listStoredDayDates(): Promise<string[]> {
+	if (!usesBlobStorage()) {
+		throw blobNotConfiguredError();
+	}
+
+	const dates: string[] = [];
+	let cursor: string | undefined;
+
+	do {
+		const result = await list({
+			prefix: 'days/',
+			limit: 1000,
+			cursor,
+		});
+
+		for (const blob of result.blobs) {
+			const match = blob.pathname.match(DAY_PATH_PATTERN);
+
+			if (match) {
+				dates.push(match[1]);
+			}
+		}
+
+		cursor = result.hasMore ? result.cursor : undefined;
+	} while (cursor);
+
+	return dates.sort((a, b) => b.localeCompare(a));
 }
