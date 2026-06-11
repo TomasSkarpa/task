@@ -12,7 +12,13 @@ Today
 
 Day is closed
 
-No tasks yet. Sync from Jira or add via Cursor.
+No tasks yet.
+
+## Add task
+
+Add task
+
+What needs doing?
 
 ## Close day
 

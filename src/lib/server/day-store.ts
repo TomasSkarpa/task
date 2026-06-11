@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { ClosedBy, Day, Task } from '$lib/types/day';
@@ -123,6 +124,35 @@ export async function closeDay(
 
 	const next = await upsertCarryoverTasks(tomorrow, carryover);
 	return { closed: day, next };
+}
+
+export async function addTask(date: string, text: string): Promise<Day> {
+	const trimmed = text.trim();
+
+	if (!trimmed) {
+		throw new Error('Task text is required');
+	}
+
+	const day = await loadDay(date);
+
+	if (day.status === 'closed') {
+		return day;
+	}
+
+	const maxSort = day.tasks.reduce((max, task) => Math.max(max, task.sort ?? 0), -1);
+	const task: Task = {
+		id: `manual-${randomUUID()}`,
+		text: trimmed,
+		status: 'open',
+		source: 'manual',
+		jiraKey: null,
+		carriedFrom: null,
+		sort: maxSort + 1,
+	};
+
+	day.tasks = [...day.tasks, task];
+	await saveDay(day);
+	return day;
 }
 
 export async function toggleTask(date: string, taskId: string): Promise<Day> {

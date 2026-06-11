@@ -21,7 +21,9 @@ UI chrome from `content/textations/site.md`. Task text lives in `data/days/*.jso
 | Confirm | Close day |
 | Cancel | Keep working |
 | Carryover | From {date} |
-| Empty day | No tasks yet. Sync from Jira or add via Cursor. |
+| Empty day | No tasks yet. |
+| Add task | Add task |
+| Add task placeholder | What needs doing? |
 
 ### Avoid
 
