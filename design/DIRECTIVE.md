@@ -174,6 +174,19 @@ See `design/tokens/colors.md` for light and dark token tables.
 
 Wrap important words in `**double asterisks**` in JSON. UI renders via `EmphasisText` (bold, `text-foreground`). Use for Jira keys, deadlines, or blocking terms, not whole sentences.
 
+### Interaction states (`design/tokens/interaction-states.md`)
+
+Every interactive control needs hover, active (press), and focus-visible feedback in **both** color modes.
+
+| Element | Hover | Active | Focus |
+|---------|-------|--------|-------|
+| **Task row** | `bg-accent/20` | `bg-accent/35`, `translate-y-px` | `focus-within:ring-3` on row |
+| **Buttons** | shadcn variant fills | `translate-y-px` (base) | `focus-visible:ring-3` |
+| **Inputs** | border unchanged | n/a | `focus-visible:ring-3` |
+| **Theme toggle** | ghost button hover | ghost button active | same as buttons |
+
+Task rows use `task-row-surface` from `layout.css`. Do not rely on color alone for done vs open (checkbox + strikethrough).
+
 ---
 
 ## 7. Component patterns

@@ -11,3 +11,6 @@
 | `add-task` | `AddTaskForm.svelte` | Text input + submit when day is open |
 | `close-day-dialog` | `CloseDayDialog.svelte` | Double confirm modal |
 | `emphasis-text` | `EmphasisText.svelte` | `**bold**` parsing |
+| `task-row-surface` | `layout.css` | Task row hover, active, focus-within |
+
+Interaction states: `design/tokens/interaction-states.md`. Task rows use `task-row-surface`; buttons use shadcn variants.

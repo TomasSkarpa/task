@@ -12,6 +12,8 @@ Flat ink on paper. Light surfaces, near-black text, no gradients. **Both light a
 | `color-fg-default` | `#0a0a0a` | Primary text |
 | `color-fg-muted` | `#5c5c5c` | Secondary text, metadata |
 | `color-accent-primary` | `#0a0a0a` | Primary actions |
+| `color-accent-primary-hover` | `#333333` | Primary controls on hover |
+| `color-accent-primary-active` | `#4a4a4a` | Primary controls on press |
 | `color-border-subtle` | `#d4d4d0` | Dividers |
 | `color-border-critical` | `#b91c1c` | Destructive confirm |
 | `color-bg-critical-subtle` | `#fef2f2` | Destructive backgrounds |

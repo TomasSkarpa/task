@@ -21,9 +21,9 @@
 	<label
 		for={inputId}
 		class={cn(
-			'flex cursor-pointer items-start gap-3 rounded-xl border border-border/80 bg-card px-4 py-3 transition-colors',
-			disabled && 'cursor-default opacity-80',
-			done && 'bg-muted/40',
+			'task-row-surface',
+			done && 'task-row-surface--done',
+			disabled && 'task-row-surface--disabled',
 		)}
 	>
 		<input
