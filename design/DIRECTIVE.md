@@ -13,7 +13,7 @@ Master design document for **task.skarpa.dev**. Combines the general ruleset (la
 | **Daily focus** | Homepage shows **today only**. No backlog clutter on the main view. |
 | **Recyclable tasks** | Open tasks **spill over** to the next day when a day closes. |
 | **Two close modes** | **Manual close** (user confirms) or **auto close** (day boundary rolls open tasks forward). |
-| **AI-maintained** | Tasks live in git-tracked JSON. Cursor skills and rules edit data; the UI reads and mutates via API in dev. |
+| **AI-maintained** | Cursor skills mutate tasks via API; persistence is Vercel Blob. |
 | **Jira bridge** | A skill pulls open Jira work into today's task list via Atlassian MCP. |
 
 **Terminology:** Use **task** everywhere. Never **todo** in UI, code names, or docs.
@@ -33,7 +33,7 @@ Master design document for **task.skarpa.dev**. Combines the general ruleset (la
 | Data contract | `data/schema/` | JSON shape for days and tasks |
 | AI workflows | `.cursor/skills/` | Jira sync, close day, task updates |
 
-When in doubt: principles in core rules, product specifics in `design/`, data in `data/days/`, workflows in skills.
+When in doubt: principles in core rules, product specifics in `design/`, data contract in `data/schema/`, workflows in skills.
 
 ---
 
@@ -117,13 +117,9 @@ Noun-based, present tense, no jargon.
 
 ### Data location
 
-```
-data/days/YYYY-MM-DD.json
-```
+One JSON document per calendar day in **Vercel Blob** (`days/YYYY-MM-DD.json`).
 
-One file per calendar day. Source of truth for AI and UI.
-
-See `data/schema/day.schema.json` for the full contract.
+See `data/schema/day.schema.json` for the shape. Mutations go through API routes only.
 
 ---
 
@@ -262,7 +258,7 @@ Keyboard: focus trap in modal, Escape cancels, visible focus rings.
 |-----------------|--------|
 | `/sync-day` or skill `sync-day-from-jira` | Phase 1: propose grouped tasks in chat; Phase 2: `POST /api/task/sync-jira` on task.skarpa.dev |
 | `/close-day` or skill `close-day` | Close today (or given date), spill open tasks |
-| Natural language in Cursor | "Add task …", "Mark **ECOM-1** done" → edit day JSON |
+| Natural language in Cursor | "Add task …", "Mark done" → `POST` task API on task.skarpa.dev |
 
 ### Rules for agents
 
@@ -285,12 +281,12 @@ Keyboard: focus trap in modal, Escape cancels, visible focus rings.
 ## 12. Technical stack
 
 - SvelteKit 2 + Svelte 5 (runes)
-- `@sveltejs/adapter-auto` (SSR for day data)
+- `@sveltejs/adapter-vercel` (SSR + API on Vercel)
 - shadcn-svelte + Tailwind CSS v4
 - Node ≥ 22.12.0
 - Deploy target: **task.skarpa.dev** (Vercel)
 
-**Persistence note:** v1 uses git-tracked JSON. API routes write to disk in local dev. Production may require blob/KV later; skills always work by editing files directly.
+**Persistence:** Vercel Blob. All skills and UI use API routes; no git-tracked day files.
 
 ---
 
@@ -311,7 +307,7 @@ Keyboard: focus trap in modal, Escape cancels, visible focus rings.
 |---------|----------|
 | Users need one daily focus | Homepage = today only |
 | Open work must not disappear | Spillover on close |
-| AI is primary editor | JSON + skills + schema |
+| AI is primary editor | API + skills + schema |
 | Low friction | Minimal nav, no account UI in v1 |
 
 ---
@@ -324,7 +320,6 @@ design/tokens/*.md
 design/ia/navigation.md
 design/content/voice-and-tone.md
 data/schema/day.schema.json
-data/days/YYYY-MM-DD.json
 content/textations/site.md
 .cursor/skills/sync-day-from-jira/
 .cursor/skills/close-day/

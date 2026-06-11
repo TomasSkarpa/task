@@ -1,55 +1,64 @@
 ---
 name: close-day
 description: >-
-  Closes a calendar day for task.skarpa.dev, marks data/days/YYYY-MM-DD.json as
-  closed, and spills open tasks to the next day. Mirrors closeDay() in
-  day-store.ts. Use when the user runs /close-day, asks to close today, end the
-  day, or roll tasks to tomorrow.
+  Closes a calendar day on task.skarpa.dev via POST /api/day/close (Vercel Blob).
+  Open tasks spill to the next day. Use when the user runs /close-day, asks to
+  close today, end the day, or roll tasks to tomorrow.
 disable-model-invocation: true
 ---
 
 # Close day
 
-Close a day file and spill open tasks to the next calendar day.
+Close today (or a given date) via the live API. Do **not** edit JSON files.
 
 ## Before you start
 
-1. Read `src/lib/server/day-store.ts` (`closeDay`, `upsertCarryoverTasks`, `nextDateString`)
+1. Read `src/lib/server/day-store.ts` (`closeDay`, spillover rules)
 2. Read `data/schema/day.schema.json`
 3. Date defaults to today (`Europe/Prague`) unless user specifies `YYYY-MM-DD`
 
-## Algorithm (must match day-store.ts)
+## Close via API
 
-1. Load `data/days/<date>.json`
-2. If `status` is already `closed`, report and stop
+Base URL: `https://task.skarpa.dev` (or `http://localhost:5173` when testing locally with `vercel env pull`)
+
+```bash
+curl -sS -X POST https://task.skarpa.dev/api/day/close \
+  -H 'content-type: application/json' \
+  -d '{"date":"YYYY-MM-DD"}'
+```
+
+Response shape:
+
+```json
+{
+  "closed": { "date": "...", "status": "closed", "tasks": [] },
+  "next": { "date": "...", "tasks": [] }
+}
+```
+
+`next` is `null` when there were no open tasks to spill.
+
+## Algorithm (implemented in day-store.ts)
+
+1. Load day from Blob
+2. If already `closed`, report and stop
 3. Collect tasks where `status === 'open'`
-4. Set on current day:
-   - `status: "closed"`
-   - `closedAt`: ISO timestamp (now)
-   - `closedBy`: `"manual"` (or `"auto"` if user says auto/midnight/cron)
-5. Save current day
+4. Set `status: closed`, `closedAt` (ISO now), `closedBy: manual` (or `auto` if user says auto/cron)
+5. Save closed day to Blob
 6. If no open tasks, stop
-7. Load or create `data/days/<next-date>.json` (next date = date + 1 day)
-8. For each open task, add carryover row:
-   - `id`: `jira-<key>` if jiraKey, else `carry-<date>-<original-id>`
-   - `text`: same as source task
-   - `status`: `open`
-   - `source`: `carryover`
-   - `jiraKey`: copied
-   - `carriedFrom`: closed date
-   - `sort`: 0..n in spill order
-9. Merge by `jiraKey` or `id` on target day (no duplicates)
-10. Save next day
+7. Copy each open task to next calendar day as carryover (`source: carryover`, `carriedFrom: closed date`)
+8. Merge by `jiraKey` or `id` on target day (no duplicates)
+9. Save next day to Blob
 
 ## After close
 
 Report:
 
 - Closed date
-- Count spilled
-- Next date file updated
-- Remind user closed homepage shows **Day is closed**
+- Count spilled (from `next.tasks` length or diff)
+- Next date if spillover happened
+- Link to [task.skarpa.dev](https://task.skarpa.dev/)
 
 ## Auto close (optional cron)
 
-Same algorithm with `closedBy: "auto"`. Typically run at 00:00 `Europe/Prague` via CI or local cron calling this skill.
+Same API with server-side `closedBy: auto` (not exposed on public route yet). For cron, call `closeDay(date, 'auto')` in a future scheduled job or extend the API when needed.

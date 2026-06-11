@@ -1,20 +1,18 @@
-import { head, put } from '@vercel/blob';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
+import { get, put } from '@vercel/blob';
 import type { Day } from '$lib/types/day';
-
-const DATA_ROOT = join(process.cwd(), 'data', 'days');
 
 function blobPathname(date: string): string {
 	return `days/${date}.json`;
 }
 
-function localPath(date: string): string {
-	return join(DATA_ROOT, `${date}.json`);
-}
-
 function serializeDay(day: Day): string {
 	return `${JSON.stringify(day, null, '\t')}\n`;
+}
+
+function blobNotConfiguredError(): Error {
+	return new Error(
+		'Blob storage is not configured. Link a Blob store on Vercel or run vercel env pull locally.',
+	);
 }
 
 /** True when a Vercel Blob store is linked (token and/or store id from dashboard connect). */
@@ -24,14 +22,14 @@ export function usesBlobStorage(): boolean {
 
 async function loadFromBlob(date: string): Promise<Day | null> {
 	try {
-		const info = await head(blobPathname(date));
-		const response = await fetch(info.url);
+		const result = await get(blobPathname(date), { access: 'private', useCache: false });
 
-		if (!response.ok) {
+		if (!result || result.statusCode !== 200 || !result.stream) {
 			return null;
 		}
 
-		return (await response.json()) as Day;
+		const raw = await new Response(result.stream).text();
+		return JSON.parse(raw) as Day;
 	} catch {
 		return null;
 	}
@@ -45,37 +43,18 @@ async function saveToBlob(day: Day): Promise<void> {
 	});
 }
 
-async function loadFromLocal(date: string): Promise<Day | null> {
-	try {
-		const raw = await readFile(localPath(date), 'utf8');
-		return JSON.parse(raw) as Day;
-	} catch {
-		return null;
-	}
-}
-
-async function saveToLocal(day: Day): Promise<void> {
-	await mkdir(DATA_ROOT, { recursive: true });
-	await writeFile(localPath(day.date), serializeDay(day), 'utf8');
-}
-
 export async function readDay(date: string): Promise<Day | null> {
-	if (usesBlobStorage()) {
-		const blobDay = await loadFromBlob(date);
-
-		if (blobDay) {
-			return blobDay;
-		}
+	if (!usesBlobStorage()) {
+		throw blobNotConfiguredError();
 	}
 
-	return loadFromLocal(date);
+	return loadFromBlob(date);
 }
 
 export async function writeDay(day: Day): Promise<void> {
-	if (usesBlobStorage()) {
-		await saveToBlob(day);
-		return;
+	if (!usesBlobStorage()) {
+		throw blobNotConfiguredError();
 	}
 
-	await saveToLocal(day);
+	await saveToBlob(day);
 }

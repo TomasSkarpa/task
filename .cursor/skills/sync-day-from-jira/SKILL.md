@@ -38,7 +38,7 @@ For **out of sprint**, deprioritize stale `[AUTOMATED TEST]` tickets unless they
 
 ## Phase 1: Propose (trigger: `/sync-day`, sync from Jira)
 
-**Do not** edit `data/days/*.json`. **Do not** call the task API. **Do not** offer a commit.
+**Do not** call the task API in Phase 1. **Do not** offer a commit.
 
 ### Step 1: Check today's day is open
 
@@ -158,7 +158,7 @@ EOF
 | **create all** (full refresh of Jira topics) | `true` (removes prior `jira-*` / `jira-group-*` on that day, keeps manual and carryover) |
 | **create 1, 3, 4** (partial) | `false` (merge by `id`; keep other existing Jira tasks) |
 
-Use the Shell tool for the curl call. On non-2xx response, report the error body; do not fall back to editing `data/days/*.json` unless the user asks for local-only dev.
+Use the Shell tool for the curl call. On non-2xx response, report the error body.
 
 ### Step 3: Confirm to user
 
@@ -190,4 +190,4 @@ Use the Shell tool for the curl call. On non-2xx response, report the error body
 ## Additional reference
 
 - JQL and constants: [jql-reference.md](jql-reference.md)
-- Persistence: Vercel Blob via `BLOB_READ_WRITE_TOKEN` on production; local `data/days/` when token is unset
+- Persistence: Vercel Blob (`BLOB_STORE_ID` on deploy; `vercel env pull` for local dev)

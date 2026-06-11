@@ -1,15 +1,25 @@
 ---
-description: Rules for editing daily task JSON and terminology
-globs: data/**/*.json
+description: Task data contract and API persistence
+globs: data/**,src/lib/server/**,src/routes/api/**
 alwaysApply: false
 ---
 
-# Task data files
+# Task data
 
 - Terminology: **task**, never todo
-- One file per day: `data/days/YYYY-MM-DD.json`
-- Validate against `data/schema/day.schema.json`
+- **Persistence:** Vercel Blob only (`days/YYYY-MM-DD.json` in Blob). No git-tracked day files.
+- **Contract:** `data/schema/day.schema.json`
+- **Mutations:** `POST` to task.skarpa.dev API routes (never edit day JSON on disk)
 - Task text: actionable line; emphasize keys with `**KEY**`
 - Preserve `id` and `jiraKey` when merging; dedupe on `jiraKey`
 - Spillover: `source: carryover`, `carriedFrom: <date>`
-- Do not edit closed days without explicit user request
+- Do not close days without explicit user request
+
+## API routes
+
+| Action | Route |
+|--------|-------|
+| Add manual task | `POST /api/task/add` `{ date, text }` |
+| Toggle done | `POST /api/task/toggle` `{ date, taskId }` |
+| Sync Jira topics | `POST /api/task/sync-jira` `{ date, tasks, replaceAll? }` |
+| Close day | `POST /api/day/close` `{ date }` |

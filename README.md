@@ -11,10 +11,11 @@ Daily recyclable **tasks**. One day on the homepage. Open tasks spill to tomorro
 
 ```bash
 npm install
+vercel env pull   # Blob credentials from linked Vercel project
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173). Sample day: `data/days/2026-06-11.json`.
+Open [http://localhost:5173](http://localhost:5173). Day data lives in **Vercel Blob**, not in this repo.
 
 ## AI workflows
 
@@ -23,26 +24,27 @@ Open [http://localhost:5173](http://localhost:5173). Sample day: `data/days/2026
 | `/sync-day` | `.cursor/skills/sync-day-from-jira` |
 | `/close-day` | `.cursor/skills/close-day` |
 
-`/sync-day` proposes grouped tasks in chat; after you confirm, the skill posts to `POST /api/task/sync-jira` on production. Spillover logic lives in `src/lib/server/day-store.ts`.
+Skills mutate data via `https://task.skarpa.dev/api/*` (or localhost when developing).
 
 ## Data
 
 ```
-data/days/YYYY-MM-DD.json   # one day, git-tracked
-data/schema/day.schema.json # contract
+data/schema/day.schema.json   # JSON shape contract only
 ```
+
+Runtime storage: `days/YYYY-MM-DD.json` in Vercel Blob.
 
 ## Deploy
 
 Target: **task.skarpa.dev** on Vercel.
 
-| Environment | Storage |
-|-------------|---------|
-| Local dev (no token) | `data/days/*.json` on disk |
-| Production | [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) when `BLOB_READ_WRITE_TOKEN` is set |
+1. **Storage → Blob store → Connect to project** (adds `BLOB_STORE_ID`)
+2. Optional: enable read-write token for local dev, then `vercel env pull`
+3. Deploy
 
-1. In the Vercel project: **Storage → Create Blob store → Connect to project** (your screenshot setup is fine)
-2. Vercel adds `BLOB_STORE_ID` (+ OIDC on deploy). Optional: check **Add a read-write token** for local dev via `vercel env pull`
-3. Redeploy after connecting
-
-API routes: `POST /api/task/add`, `POST /api/task/toggle`, `POST /api/task/sync-jira`, `POST /api/day/close`
+| API | Body |
+|-----|------|
+| `POST /api/task/add` | `{ date, text }` |
+| `POST /api/task/toggle` | `{ date, taskId }` |
+| `POST /api/task/sync-jira` | `{ date, tasks, replaceAll? }` |
+| `POST /api/day/close` | `{ date }` |

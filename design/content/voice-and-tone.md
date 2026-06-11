@@ -1,6 +1,6 @@
 ## Voice and tone
 
-UI chrome from `content/textations/site.md`. Task text lives in `data/days/*.json`.
+UI chrome from `content/textations/site.md`. Task text is stored in Vercel Blob and edited via API.
 
 ### Voice
 
