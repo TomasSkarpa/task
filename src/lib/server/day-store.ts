@@ -1,9 +1,7 @@
 import { randomUUID } from 'node:crypto';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
+import { readDay, writeDay } from '$lib/server/day-persistence';
 import type { ClosedBy, Day, Task } from '$lib/types/day';
 
-const DATA_ROOT = join(process.cwd(), 'data', 'days');
 const TZ = 'Europe/Prague';
 
 export function todayDateString(now = new Date()): string {
@@ -25,10 +23,6 @@ function formatDateInTz(date: Date, timeZone: string): string {
 	}).format(date);
 }
 
-function dayPath(date: string): string {
-	return join(DATA_ROOT, `${date}.json`);
-}
-
 function emptyDay(date: string): Day {
 	return {
 		date,
@@ -40,17 +34,12 @@ function emptyDay(date: string): Day {
 }
 
 export async function loadDay(date: string): Promise<Day> {
-	try {
-		const raw = await readFile(dayPath(date), 'utf8');
-		return JSON.parse(raw) as Day;
-	} catch {
-		return emptyDay(date);
-	}
+	const day = await readDay(date);
+	return day ?? emptyDay(date);
 }
 
 export async function saveDay(day: Day): Promise<void> {
-	await mkdir(DATA_ROOT, { recursive: true });
-	await writeFile(dayPath(day.date), `${JSON.stringify(day, null, '\t')}\n`, 'utf8');
+	await writeDay(day);
 }
 
 export async function loadToday(): Promise<Day> {
@@ -70,6 +59,10 @@ function mergeTask(existing: Task, incoming: Task): Task {
 	};
 }
 
+function isJiraSourcedTask(task: Task): boolean {
+	return task.source === 'jira' || task.id.startsWith('jira-');
+}
+
 export async function upsertCarryoverTasks(targetDate: string, tasks: Task[]): Promise<Day> {
 	const day = await loadDay(targetDate);
 	const byKey = new Map(day.tasks.map((t) => [taskKey(t), t]));
@@ -85,6 +78,48 @@ export async function upsertCarryoverTasks(targetDate: string, tasks: Task[]): P
 	}
 
 	day.tasks = [...byKey.values()].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
+	await saveDay(day);
+	return day;
+}
+
+export async function upsertJiraTasks(
+	date: string,
+	tasks: Task[],
+	replaceAll = false,
+): Promise<Day> {
+	const day = await loadDay(date);
+
+	if (day.status === 'closed') {
+		return day;
+	}
+
+	const incomingIds = new Set(tasks.map((task) => task.id));
+	const preserved = day.tasks.filter((task) => {
+		if (!isJiraSourcedTask(task)) {
+			return true;
+		}
+
+		if (replaceAll) {
+			return false;
+		}
+
+		return !incomingIds.has(task.id);
+	});
+
+	const byId = new Map(preserved.map((task) => [task.id, task]));
+	let maxSort = preserved.reduce((max, task) => Math.max(max, task.sort ?? 0), -1);
+
+	for (const task of tasks) {
+		maxSort += 1;
+		byId.set(task.id, {
+			...task,
+			status: 'open',
+			source: 'jira',
+			sort: byId.get(task.id)?.sort ?? maxSort,
+		});
+	}
+
+	day.tasks = [...byId.values()].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
 	await saveDay(day);
 	return day;
 }

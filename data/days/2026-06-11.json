@@ -5,22 +5,13 @@
 	"closedBy": null,
 	"tasks": [
 		{
-			"id": "jira-ecom-4821",
-			"text": "Review **ECOM-4821** checkout hook for Constructor facet",
-			"status": "done",
-			"source": "jira",
-			"jiraKey": "ECOM-4821",
-			"carriedFrom": null,
-			"sort": 0
-		},
-		{
 			"id": "carry-2026-06-10-1",
 			"text": "Reply to **SFCC** staging import thread",
 			"status": "done",
 			"source": "carryover",
 			"jiraKey": null,
 			"carriedFrom": "2026-06-10",
-			"sort": 1
+			"sort": 0
 		},
 		{
 			"id": "manual-1",
@@ -29,7 +20,124 @@
 			"source": "manual",
 			"jiraKey": null,
 			"carriedFrom": null,
+			"sort": 1
+		},
+		{
+			"id": "jira-group-in-store-locator",
+			"text": "Unblock **Bata IN store locator / ProManage cutover**: redirect legacy SFCC locator to stores.bata.com; verify ProManage static store URLs on PDP Find in Store",
+			"status": "open",
+			"source": "jira",
+			"jiraKey": null,
+			"carriedFrom": null,
 			"sort": 2
+		},
+		{
+			"id": "jira-group-cz-withdrawal",
+			"text": "Follow up on **Czech contract withdrawal & easy return**: withdrawal on order detail and track order; SFCC resources and Resource Manager config; order return email content asset; footer translation for track and return",
+			"status": "open",
+			"source": "jira",
+			"jiraKey": null,
+			"carriedFrom": null,
+			"sort": 3
+		},
+		{
+			"id": "jira-group-mule-shipping-statuses",
+			"text": "Review **MULE order-not-shipped statuses**: analyse which statuses mean the order has not shipped yet",
+			"status": "open",
+			"source": "jira",
+			"jiraKey": "FSP-49700",
+			"carriedFrom": null,
+			"sort": 4
+		},
+		{
+			"id": "jira-group-aw-en-emails",
+			"text": "Unblock **AW EN transactional emails**: remove Customer Care hours from templates",
+			"status": "open",
+			"source": "jira",
+			"jiraKey": "FSP-49571",
+			"carriedFrom": null,
+			"sort": 5
+		},
+		{
+			"id": "jira-group-bata-id-shipment-email",
+			"text": "Unblock **BATA ID shipment emails**: fix incomplete address on order placed/shipment template",
+			"status": "open",
+			"source": "jira",
+			"jiraKey": "FSP-46539",
+			"carriedFrom": null,
+			"sort": 6
+		},
+		{
+			"id": "jira-group-bata-co-shipment-email",
+			"text": "Finish **BATA CO shipment email**: update customer service contact info on order shipment template",
+			"status": "open",
+			"source": "jira",
+			"jiraKey": "FSP-49587",
+			"carriedFrom": null,
+			"sort": 7
+		},
+		{
+			"id": "jira-group-aw-order-emails",
+			"text": "Finish **AW order-ready & ISS emails**: remove Order Ready disclaimer (IT/ES); update in-store pickup messaging and confirmation email",
+			"status": "open",
+			"source": "jira",
+			"jiraKey": null,
+			"carriedFrom": null,
+			"sort": 8
+		},
+		{
+			"id": "jira-group-newsletter-subscribe",
+			"text": "Finish **newsletter subscribe on Bata DEV sites**: fix stuck \"troubles subscribing your details\" message (BG, HU, LV, SE, EE, RO, LT)",
+			"status": "open",
+			"source": "jira",
+			"jiraKey": "FSP-46293",
+			"carriedFrom": null,
+			"sort": 9
+		},
+		{
+			"id": "jira-group-registration-monitors",
+			"text": "Unblock **registration journey OpenSearch monitors**: customer registration degraded alerts for Aftersales",
+			"status": "open",
+			"source": "jira",
+			"jiraKey": "FSP-49357",
+			"carriedFrom": null,
+			"sort": 10
+		},
+		{
+			"id": "jira-group-awlab-it-registration",
+			"text": "Finish **AWLAB IT registration mail**: fix wrong links in registration email",
+			"status": "open",
+			"source": "jira",
+			"jiraKey": "FSP-26772",
+			"carriedFrom": null,
+			"sort": 11
+		},
+		{
+			"id": "jira-group-bata-pe-registration",
+			"text": "Review **Bata PE registration**: light registration email missing at checkout; bata.com/eu domain blocks register and password reset",
+			"status": "open",
+			"source": "jira",
+			"jiraKey": null,
+			"carriedFrom": null,
+			"sort": 12
+		},
+		{
+			"id": "jira-group-bata-it-eu-registration",
+			"text": "Finish **BATA IT EU registration**: false \"already registered\" error for PayPal checkout email",
+			"status": "open",
+			"source": "jira",
+			"jiraKey": "FSP-45501",
+			"carriedFrom": null,
+			"sort": 13
+		},
+		{
+			"id": "jira-group-aw-transactional-content",
+			"text": "Finish **AW transactional email content** (IT/EN/ES): remove recurring wrong/old content from templates",
+			"status": "open",
+			"source": "jira",
+			"jiraKey": "FSP-47394",
+			"carriedFrom": null,
+			"sort": 14
 		}
 	]
 }

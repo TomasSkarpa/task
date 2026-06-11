@@ -260,7 +260,7 @@ Keyboard: focus trap in modal, Escape cancels, visible focus rings.
 
 | Command / skill | Purpose |
 |-----------------|--------|
-| `/sync-day` or skill `sync-day-from-jira` | Pull open Jira issues into today's `data/days/<date>.json` |
+| `/sync-day` or skill `sync-day-from-jira` | Phase 1: propose grouped tasks in chat; Phase 2: `POST /api/task/sync-jira` on task.skarpa.dev |
 | `/close-day` or skill `close-day` | Close today (or given date), spill open tasks |
 | Natural language in Cursor | "Add task …", "Mark **ECOM-1** done" → edit day JSON |
 
@@ -269,13 +269,16 @@ Keyboard: focus trap in modal, Escape cancels, visible focus rings.
 - Read `AGENTS.md` and `data/schema/day.schema.json` before editing tasks
 - Never rename "task" to "todo"
 - Preserve existing task `id` and `jiraKey` on merge
-- After Jira sync, commit message pattern: `sync: tasks for YYYY-MM-DD from Jira`
+- Jira sync does not require a git commit; production persists via Vercel Blob
 
 ### Jira sync criteria (default)
 
-- Assignee: current user
-- Status: not Done / Closed
-- Optional JQL in skill reference file
+- Site: `bataeurope.atlassian.net`, project `FSP`
+- Squad: Aftersales Avengers (`Team[Team]` UUID in skill jql-reference)
+- **Developer** = current user (not assignee)
+- Pending-action statuses only (dev, PR review, test on dev/sandbox)
+- Sprint-aware buckets: in `openSprints()`, out of sprint, recent out-of-sprint follow-up (report)
+- Full JQL: `.cursor/skills/sync-day-from-jira/jql-reference.md`
 
 ---
 

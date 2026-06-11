@@ -24,7 +24,7 @@ Daily **tasks** (never "todos"). One day per JSON file. Recyclable via spillover
 | Homepage | `src/routes/+page.svelte` |
 | Light/dark theme | `src/lib/theme.ts`, `ThemeToggle.svelte`, `layout.css` |
 | Tokens, IA, voice | `design/tokens/`, `design/ia/`, `design/content/` |
-| Jira sync workflow | `.cursor/skills/sync-day-from-jira/SKILL.md` |
+| Jira sync workflow (propose → confirm → API) | `.cursor/skills/sync-day-from-jira/SKILL.md` |
 | Close day workflow | `.cursor/skills/close-day/SKILL.md` |
 
 ## Data workflow
@@ -38,11 +38,12 @@ Daily **tasks** (never "todos"). One day per JSON file. Recyclable via spillover
 
 | User says | Skill |
 |-----------|-------|
-| `/sync-day`, sync from Jira, fill today | `sync-day-from-jira` |
+| `/sync-day`, sync from Jira | `sync-day-from-jira` (Phase 1: proposals in chat only) |
+| `create all` / `create 1,3,4` after sync | `sync-day-from-jira` Phase 2 → `POST /api/task/sync-jira` on task.skarpa.dev |
 | `/close-day`, close today | `close-day` |
 | Add/mark tasks | Edit `data/days/<date>.json` directly |
 
-After data edits, user may run `npm run dev` to preview. Commit data files when asked.
+**Jira sync:** Phase 1 does not write files. Phase 2 writes via `POST https://task.skarpa.dev/api/task/sync-jira` (Vercel Blob). Local dev without `BLOB_READ_WRITE_TOKEN` falls back to `data/days/`. Commit data files only when explicitly asked.
 
 ## Day lifecycle
 
