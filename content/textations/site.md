@@ -1,6 +1,6 @@
 # Site
 
-task.skarpa.dev
+Skarpa Task
 
 Daily tasks. One day at a time.
 

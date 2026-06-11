@@ -1,5 +1,5 @@
 export const site = {
-	name: 'task.skarpa.dev',
+	name: 'Skarpa Task',
 	title: 'Daily tasks',
 	pageTitle: 'Today',
 	closedLabel: 'Day is closed',
