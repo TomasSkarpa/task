@@ -131,13 +131,30 @@ See `data/schema/day.schema.json` for the full contract.
 
 **Aesthetic:** Flat ink on paper. Light surfaces, near-black text, no gradients. Same family as skarpa.dev CV dossier, tuned for **speed and focus**.
 
+### Color modes (required)
+
+Every UI change must support **light and dark mode**:
+
+| Mode | Default | Mechanism |
+|------|---------|-----------|
+| **Light** | Yes (also when no stored preference and OS prefers light) | `:root` tokens in `layout.css` |
+| **Dark** | When user toggles or OS prefers dark (until user picks explicitly) | `.dark` on `html`, warm inverted ink-on-paper tokens |
+
+- **Toggle:** `ThemeToggle` in site header (ghost icon button). Persists choice in `localStorage` (`skarpa-task-theme`).
+- **No flash:** Inline script in `app.html` applies `.dark` before paint; keep logic in sync with `src/lib/theme.ts`.
+- **Components:** Use semantic Tailwind tokens (`bg-background`, `text-muted-foreground`, etc.). Do not hardcode light-only hex in Svelte files.
+- **Testing:** Manually verify new or changed UI in **both** modes (contrast, borders, destructive states, modal backdrop). Treat missing dark support as incomplete work.
+
+See `design/tokens/colors.md` for light and dark token tables.
+
 ### Color (`design/tokens/colors.md`)
 
-- Surfaces: page `#f7f7f5`, subtle `#ececea`, elevated `#ffffff`
-- Text: default `#0a0a0a`, muted `#5c5c5c`
-- Accent: near-black links and primary actions
-- Errors / destructive: `#b91c1c` with subtle background
-- Contrast: AA minimum; AAA for primary text
+- Light surfaces: page `#f7f7f5`, subtle `#ececea`, elevated `#ffffff`
+- Light text: default `#0a0a0a`, muted `#5c5c5c`
+- Dark: warm near-black surfaces with off-white text (see token doc)
+- Accent: near-black (light) / near-white (dark) for primary actions
+- Errors / destructive: shared destructive token with mode-appropriate backgrounds
+- Contrast: AA minimum in **both** modes; AAA for primary text where feasible
 
 ### Typography (`design/tokens/typography.md`)
 
@@ -163,6 +180,7 @@ Wrap important words in `**double asterisks**` in JSON. UI renders via `Emphasis
 
 | Block | Usage |
 |-------|--------|
+| `theme-toggle` | Header control; light/dark switch, persists preference |
 | `day-shell` | Page container, max 40rem |
 | `day-header` | Today label + date + open/closed badge |
 | `day-closed` | Placeholder when day is closed |

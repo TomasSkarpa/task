@@ -22,6 +22,7 @@ Daily **tasks** (never "todos"). One day per JSON file. Recyclable via spillover
 | UI labels | `content/textations/site.md` |
 | Day read/write logic | `src/lib/server/day-store.ts` |
 | Homepage | `src/routes/+page.svelte` |
+| Light/dark theme | `src/lib/theme.ts`, `ThemeToggle.svelte`, `layout.css` |
 | Tokens, IA, voice | `design/tokens/`, `design/ia/`, `design/content/` |
 | Jira sync workflow | `.cursor/skills/sync-day-from-jira/SKILL.md` |
 | Close day workflow | `.cursor/skills/close-day/SKILL.md` |
@@ -63,7 +64,7 @@ npm run check
 ## Svelte
 
 - Svelte 5 runes in `src/`
-- Prefer site components: `DayShell`, `TaskRow`, `CloseDayDialog`, `EmphasisText`
+- Prefer site components: `DayShell`, `TaskRow`, `CloseDayDialog`, `EmphasisText`, `ThemeToggle`
 - Use Svelte MCP `svelte-autofixer` when editing `.svelte` files
 
 ## Conventions
@@ -71,4 +72,5 @@ npm run check
 - Minimal diffs; match existing patterns
 - No em dashes in new UI copy
 - Layout: `DayShell` / `.site-container` (40rem)
+- UI changes: verify **light and dark mode** (see `design/DIRECTIVE.md` §6)
 - Commits only when explicitly requested

@@ -26,6 +26,12 @@ Keep working
 
 From
 
+## Theme
+
+Switch to dark mode
+
+Switch to light mode
+
 ## Meta
 
 Europe/Prague day boundary for auto close (skill/cron).

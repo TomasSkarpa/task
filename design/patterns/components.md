@@ -2,6 +2,7 @@
 
 | Block | File | Usage |
 |-------|------|-------|
+| `theme-toggle` | `ThemeToggle.svelte` | Header light/dark switch; uses `src/lib/theme.ts` |
 | `day-shell` | `DayShell.svelte` | 40rem content column |
 | `day-header` | `+page.svelte` | Today + date |
 | `day-closed` | `+page.svelte` | Closed placeholder |

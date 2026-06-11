@@ -11,6 +11,7 @@ Read `design/DIRECTIVE.md` before visual or IA changes.
 - Terminology: **task**, never todo
 - WCAG 2.1 AA; keyboard and visible focus
 - Token-based spacing and type; no ad-hoc palettes
+- **Light and dark mode:** define tokens in `layout.css`; use semantic Tailwind colors; test both modes on every UI change
 - shadcn-svelte + Tailwind only; no new UI libraries
 - Emphasis via `**text**` in JSON, rendered by `EmphasisText`
 - Close day requires double confirm in UI; skills mirror `day-store.ts`
