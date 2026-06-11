@@ -1,5 +1,5 @@
 export const site = {
-	name: 'Skarpa Task',
+	name: 'Task Orchestration',
 	title: 'Daily tasks',
 	pageTitle: 'Today',
 	historyTitle: 'History',
