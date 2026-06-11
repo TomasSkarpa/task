@@ -189,19 +189,9 @@ Use the Shell tool for the curl call. On non-2xx response, report the error body
 
 ## Remove tasks (user or skill)
 
-```bash
-# one task by id
-curl -sS -X POST https://task.skarpa.dev/api/task/remove \
-  -H 'content-type: application/json' \
-  -d '{"date":"YYYY-MM-DD","taskId":"jira-group-cz-withdrawal"}'
+Use [.cursor/skills/remove-tasks/SKILL.md](../remove-tasks/SKILL.md) for `/remove-tasks`, **remove 3**, or **drop task X**.
 
-# several tasks
-curl -sS -X POST https://task.skarpa.dev/api/task/remove \
-  -H 'content-type: application/json' \
-  -d '{"date":"YYYY-MM-DD","taskIds":["jira-group-test","manual-abc"]}'
-```
-
-Use when the user says **remove 3**, **drop task X**, or after sync when they decline specific proposals. Map proposal numbers to stable `id` values from Phase 1.
+After Phase 1 proposals, map declined proposal numbers to stable `id` values from the proposal list before calling remove.
 
 ## Additional reference
 

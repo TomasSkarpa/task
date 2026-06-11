@@ -28,6 +28,7 @@ Daily **tasks** (never "todos"). One day on the homepage. Recyclable via spillov
 | Tokens, IA, voice | `design/tokens/`, `design/ia/`, `design/content/` |
 | Jira sync (propose → confirm → API) | `.cursor/skills/sync-day-from-jira/SKILL.md` |
 | Close day (API) | `.cursor/skills/close-day/SKILL.md` |
+| Remove tasks (API) | `.cursor/skills/remove-tasks/SKILL.md` |
 
 ## Data workflow
 
@@ -43,9 +44,9 @@ Daily **tasks** (never "todos"). One day on the homepage. Recyclable via spillov
 | `/sync-day`, sync from Jira | `sync-day-from-jira` Phase 1: proposals in chat |
 | `create all` / `create 1,3,4` | Phase 2 → `POST https://task.skarpa.dev/api/task/sync-jira` |
 | `/close-day`, close today | `close-day` → `POST https://task.skarpa.dev/api/day/close` |
+| `/remove-tasks`, `remove 1,3` | `remove-tasks` → `GET /api/day`, then `POST /api/task/remove` |
 | Add task | `POST https://task.skarpa.dev/api/task/add` |
 | Mark task done | `POST https://task.skarpa.dev/api/task/toggle` |
-| Remove task(s) | `POST https://task.skarpa.dev/api/task/remove` |
 
 ## Day lifecycle
 

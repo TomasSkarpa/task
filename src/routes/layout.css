@@ -112,4 +112,12 @@
 	.task-row-surface--disabled {
 		@apply cursor-default opacity-80;
 	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.task-list,
+		.task-row {
+			animation: none !important;
+			transition: none !important;
+		}
+	}
 }

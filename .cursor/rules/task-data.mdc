@@ -19,6 +19,7 @@ alwaysApply: false
 
 | Action | Route |
 |--------|-------|
+| Read day | `GET /api/day` optional `?date=YYYY-MM-DD` |
 | Add manual task | `POST /api/task/add` `{ date, text }` |
 | Toggle done | `POST /api/task/toggle` `{ date, taskId }` |
 | Remove task(s) | `POST /api/task/remove` `{ date, taskId }` or `{ date, taskIds }` |

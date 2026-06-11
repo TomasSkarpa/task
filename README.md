@@ -23,6 +23,7 @@ Open [http://localhost:5173](http://localhost:5173). Day data lives in **Vercel 
 |---------|-------|
 | `/sync-day` | `.cursor/skills/sync-day-from-jira` |
 | `/close-day` | `.cursor/skills/close-day` |
+| `/remove-tasks` | `.cursor/skills/remove-tasks` |
 
 Skills mutate data via `https://task.skarpa.dev/api/*` (or localhost when developing).
 
@@ -44,6 +45,7 @@ Target: **task.skarpa.dev** on Vercel.
 
 | API | Body |
 |-----|------|
+| `GET /api/day` | optional `?date=YYYY-MM-DD` |
 | `POST /api/task/add` | `{ date, text }` |
 | `POST /api/task/toggle` | `{ date, taskId }` |
 | `POST /api/task/remove` | `{ date, taskId }` or `{ date, taskIds: [] }` |

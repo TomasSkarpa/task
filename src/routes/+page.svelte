@@ -5,17 +5,37 @@
 	import TaskRow from '$lib/components/site/TaskRow.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { site } from '$lib/data/site';
+	import type { Day } from '$lib/types/day';
 	import { invalidateAll } from '$app/navigation';
+	import { onMount } from 'svelte';
+	import { cubicOut } from 'svelte/easing';
+	import { flip } from 'svelte/animate';
+	import { fade, slide } from 'svelte/transition';
 
 	let { data } = $props();
 
 	let confirmOpen = $state(false);
 	let closing = $state(false);
+	let dayView = $state<Day>();
+	let reduceMotion = $state(false);
 
-	const day = $derived(data.day);
-	const isClosed = $derived(day.status === 'closed');
-	const openTaskCount = $derived(day.tasks.filter((t) => t.status === 'open').length);
-	const sortedTasks = $derived([...day.tasks].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0)));
+	onMount(() => {
+		reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	});
+
+	$effect.pre(() => {
+		dayView = data.day;
+	});
+
+	const listMotionMs = $derived(reduceMotion ? 0 : 220);
+	const emptyFadeMs = $derived(reduceMotion ? 0 : 200);
+	const emptyFadeDelay = $derived(reduceMotion ? 0 : 140);
+
+	const isClosed = $derived(dayView?.status === 'closed');
+	const openTaskCount = $derived(dayView?.tasks.filter((t) => t.status === 'open').length ?? 0);
+	const sortedTasks = $derived(
+		[...(dayView?.tasks ?? [])].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0)),
+	);
 
 	const dateLabel = $derived(
 		new Intl.DateTimeFormat('en-GB', {
@@ -23,14 +43,16 @@
 			day: 'numeric',
 			month: 'short',
 			timeZone: site.timeZone,
-		}).format(new Date(`${day.date}T12:00:00`)),
+		}).format(new Date(`${dayView?.date ?? ''}T12:00:00`)),
 	);
 
 	async function toggleTask(taskId: string) {
+		if (!dayView) return;
+
 		const response = await fetch('/api/task/toggle', {
 			method: 'POST',
 			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ date: day.date, taskId }),
+			body: JSON.stringify({ date: dayView.date, taskId }),
 		});
 
 		if (!response.ok) return;
@@ -38,23 +60,38 @@
 	}
 
 	async function removeTask(taskId: string) {
+		if (!dayView) return;
+
+		const snapshot = dayView;
+		dayView = {
+			...dayView,
+			tasks: dayView.tasks.filter((task) => task.id !== taskId),
+		};
+
 		const response = await fetch('/api/task/remove', {
 			method: 'POST',
 			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ date: day.date, taskId }),
+			body: JSON.stringify({ date: dayView.date, taskId }),
 		});
 
-		if (!response.ok) return;
-		await invalidateAll();
+		if (!response.ok) {
+			dayView = snapshot;
+			return;
+		}
+
+		const payload = (await response.json()) as { day: Day };
+		dayView = payload.day;
 	}
 
 	async function closeDay() {
+		if (!dayView) return;
+
 		closing = true;
 		try {
 			const response = await fetch('/api/day/close', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ date: day.date }),
+				body: JSON.stringify({ date: dayView.date }),
 			});
 
 			if (!response.ok) return;
@@ -71,27 +108,37 @@
 			{site.pageTitle}
 		</p>
 		<h1 class="text-3xl font-semibold tracking-tight">{dateLabel}</h1>
-		{#if isClosed}
-			<p class="font-mono text-sm text-muted-foreground">{day.date}</p>
+		{#if dayView && isClosed}
+			<p class="font-mono text-sm text-muted-foreground">{dayView.date}</p>
 		{/if}
 	</header>
 
-	{#if isClosed}
+	{#if dayView && isClosed}
 		<section class="day-closed rounded-xl border border-dashed border-border bg-muted/30 px-6 py-16 text-center">
 			<p class="text-lg font-medium text-foreground">{site.closedLabel}</p>
 			<p class="mt-2 text-sm text-muted-foreground">Open tasks moved to the next day.</p>
 		</section>
-	{:else}
-		<AddTaskForm date={day.date} />
+	{:else if dayView}
+		<AddTaskForm date={dayView.date} />
 
 		{#if sortedTasks.length === 0}
-			<section class="rounded-xl border border-dashed border-border bg-muted/20 px-6 py-8 text-center">
+			<section
+				class="rounded-xl border border-dashed border-border bg-muted/20 px-6 py-8 text-center"
+				in:fade={{ duration: emptyFadeMs, delay: emptyFadeDelay }}
+			>
 				<p class="text-sm text-muted-foreground">{site.emptyLabel}</p>
 			</section>
 		{:else}
-			<ul class="task-list space-y-2" aria-label="Today's tasks">
+			<ul class="task-list flex flex-col gap-2" aria-label="Today's tasks">
 				{#each sortedTasks as task (task.id)}
-					<TaskRow {task} onToggle={toggleTask} onRemove={removeTask} />
+					<li
+						class="task-row group/task-row flex items-start gap-2 overflow-hidden"
+						in:fade={{ duration: listMotionMs * 0.7 }}
+						out:slide={{ duration: listMotionMs, easing: cubicOut }}
+						animate:flip={{ duration: listMotionMs, easing: cubicOut }}
+					>
+						<TaskRow {task} onToggle={toggleTask} onRemove={removeTask} />
+					</li>
 				{/each}
 			</ul>
 		{/if}
