@@ -22,6 +22,8 @@ Open [http://localhost:5173](http://localhost:5173). Day data lives in **Vercel 
 | Command | Skill |
 |---------|-------|
 | `/sync-day` | `.cursor/skills/sync-day-from-jira` |
+| `/add-task` | `.cursor/skills/add-task` |
+| `/fragment-task` | `.cursor/skills/fragment-task` |
 | `/close-day` | `.cursor/skills/close-day` |
 | `/remove-tasks` | `.cursor/skills/remove-tasks` |
 

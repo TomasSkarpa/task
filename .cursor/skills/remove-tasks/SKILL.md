@@ -76,3 +76,7 @@ Report:
 - Link to [task.skarpa.dev](https://task.skarpa.dev/)
 
 If `removed` is 0, say nothing matched and show the current list again.
+
+## Related skills
+
+- Split one task into smaller rows (add + remove parent): [.cursor/skills/fragment-task/SKILL.md](../fragment-task/SKILL.md)

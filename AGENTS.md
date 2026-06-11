@@ -27,6 +27,8 @@ Daily **tasks** (never "todos"). One day on the homepage. Recyclable via spillov
 | Light/dark theme | `src/lib/theme.ts`, `ThemeToggle.svelte`, `layout.css` |
 | Tokens, IA, voice | `design/tokens/`, `design/ia/`, `design/content/` |
 | Jira sync (propose → confirm → API) | `.cursor/skills/sync-day-from-jira/SKILL.md` |
+| Add manual task (API) | `.cursor/skills/add-task/SKILL.md` |
+| Fragment task (split one row) | `.cursor/skills/fragment-task/SKILL.md` |
 | Close day (API) | `.cursor/skills/close-day/SKILL.md` |
 | Remove tasks (API) | `.cursor/skills/remove-tasks/SKILL.md` |
 
@@ -45,7 +47,8 @@ Daily **tasks** (never "todos"). One day on the homepage. Recyclable via spillov
 | `create all` / `create 1,3,4` | Phase 2 → `POST https://task.skarpa.dev/api/task/sync-jira` |
 | `/close-day`, close today | `close-day` → `POST https://task.skarpa.dev/api/day/close` |
 | `/remove-tasks`, `remove 1,3` | `remove-tasks` → `GET /api/day`, then `POST /api/task/remove` |
-| Add task | `POST https://task.skarpa.dev/api/task/add` |
+| `/add-task`, add task | `add-task` → `GET /api/day`, then `POST /api/task/add` |
+| `/fragment-task`, split task N | `fragment-task` Phase 1: propose; **split all** → add fragments + remove parent |
 | Mark task done | `POST https://task.skarpa.dev/api/task/toggle` |
 
 ## Day lifecycle

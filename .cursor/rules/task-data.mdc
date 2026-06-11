@@ -14,6 +14,8 @@ alwaysApply: false
 - Preserve `id` and `jiraKey` when merging; dedupe on `jiraKey`
 - Spillover: `source: carryover`, `carriedFrom: <date>`
 - Do not close days without explicit user request
+- Add manual tasks via `.cursor/skills/add-task/SKILL.md` (`POST /api/task/add`)
+- Split one task into focused rows via `.cursor/skills/fragment-task/SKILL.md` (add + remove parent)
 
 ## API routes
 
