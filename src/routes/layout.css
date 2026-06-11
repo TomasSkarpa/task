@@ -86,6 +86,10 @@
 		@apply bg-background text-foreground antialiased;
 	}
 
+	dialog:modal {
+		margin: auto;
+	}
+
 	.site-container {
 		width: 100%;
 		max-width: var(--content-width);

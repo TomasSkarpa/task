@@ -32,7 +32,7 @@
 
 <dialog
 	bind:this={dialogEl}
-	class="w-[min(100%,24rem)] rounded-xl border border-border bg-popover p-0 text-popover-foreground shadow-lg backdrop:bg-foreground/20"
+	class="fixed inset-0 m-auto h-fit max-h-[min(100dvh-2rem,32rem)] w-[min(calc(100%-2rem),24rem)] rounded-xl border border-border bg-popover p-0 text-popover-foreground shadow-lg backdrop:bg-foreground/20"
 	aria-labelledby="close-day-title"
 	onclose={handleClose}
 	oncancel={(event) => {
