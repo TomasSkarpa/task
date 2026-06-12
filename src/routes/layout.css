@@ -102,7 +102,6 @@
 		@apply flex cursor-pointer items-start gap-3 rounded-xl border border-border/80 bg-card px-4 py-3 transition-all outline-none;
 		@apply hover:border-border hover:bg-accent/20;
 		@apply active:translate-y-px active:bg-accent/35;
-		@apply focus-within:ring-3 focus-within:ring-ring/50;
 	}
 
 	.task-row-surface--done {

@@ -178,7 +178,7 @@ Every interactive control needs hover, active (press), and focus-visible feedbac
 
 | Element | Hover | Active | Focus |
 |---------|-------|--------|-------|
-| **Task row** | `bg-accent/20` | `bg-accent/35`, `translate-y-px` | `focus-within:ring-3` on row |
+| **Task row** | `bg-accent/20` | `bg-accent/35`, `translate-y-px` | checkbox native focus |
 | **Buttons** | shadcn variant fills | `translate-y-px` (base) | `focus-visible:ring-3` |
 | **Inputs** | border unchanged | n/a | `focus-visible:ring-3` |
 | **Theme toggle** | ghost button hover | ghost button active | same as buttons |
