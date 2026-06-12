@@ -1,7 +1,23 @@
 import { randomUUID } from 'node:crypto';
+import { pickSparkPrompt } from '$lib/data/spark-prompts';
 import { listStoredDayDates, readDay, writeDay } from '$lib/server/day-persistence';
 import { buildDaySummary } from '$lib/server/day-summary';
 import type { ClosedBy, Day, DaySummary, Task } from '$lib/types/day';
+
+export class SparkAlreadyAddedError extends Error {
+	constructor() {
+		super('Spark already added today');
+		this.name = 'SparkAlreadyAddedError';
+	}
+}
+
+function isSparkTask(task: Task): boolean {
+	return task.source === 'spark';
+}
+
+export function countsTowardSpillover(task: Task): boolean {
+	return task.status === 'open' && !isSparkTask(task);
+}
 
 const TZ = 'Europe/Prague';
 
@@ -157,7 +173,7 @@ export async function closeDay(
 		return { closed: day, next: null };
 	}
 
-	const openTasks = day.tasks.filter((t) => t.status === 'open');
+	const openTasks = day.tasks.filter(countsTowardSpillover);
 	const tomorrow = nextDateString(date);
 
 	day.status = 'closed';
@@ -181,6 +197,33 @@ export async function closeDay(
 
 	const next = await upsertCarryoverTasks(tomorrow, carryover);
 	return { closed: day, next };
+}
+
+export async function addSparkTask(date: string): Promise<Day> {
+	const day = await loadDay(date);
+
+	if (day.status === 'closed') {
+		return day;
+	}
+
+	if (day.tasks.some(isSparkTask)) {
+		throw new SparkAlreadyAddedError();
+	}
+
+	const maxSort = day.tasks.reduce((max, task) => Math.max(max, task.sort ?? 0), -1);
+	const task: Task = {
+		id: `spark-${randomUUID()}`,
+		text: pickSparkPrompt(),
+		status: 'open',
+		source: 'spark',
+		jiraKey: null,
+		carriedFrom: null,
+		sort: maxSort + 1,
+	};
+
+	day.tasks = [...day.tasks, task];
+	await saveDay(day);
+	return day;
 }
 
 export async function addTask(date: string, text: string): Promise<Day> {
@@ -244,4 +287,8 @@ export async function removeTasks(date: string, taskIds: string[]): Promise<Day>
 
 export function countOpenTasks(day: Day): number {
 	return day.tasks.filter((t) => t.status === 'open').length;
+}
+
+export function countSpilloverTasks(day: Day): number {
+	return day.tasks.filter(countsTowardSpillover).length;
 }

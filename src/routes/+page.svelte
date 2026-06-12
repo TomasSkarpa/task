@@ -1,5 +1,6 @@
 <script lang="ts">
 	import AddTaskForm from '$lib/components/site/AddTaskForm.svelte';
+	import SparkButton from '$lib/components/site/SparkButton.svelte';
 	import CloseDayDialog from '$lib/components/site/CloseDayDialog.svelte';
 	import DayShell from '$lib/components/site/DayShell.svelte';
 	import TaskRow from '$lib/components/site/TaskRow.svelte';
@@ -34,7 +35,10 @@
 	const emptyFadeDelay = $derived(reduceMotion ? 0 : 140);
 
 	const isClosed = $derived(activeDay?.status === 'closed');
-	const openTaskCount = $derived(activeDay?.tasks.filter((t) => t.status === 'open').length ?? 0);
+	const openTaskCount = $derived(
+		activeDay?.tasks.filter((t) => t.status === 'open' && t.source !== 'spark').length ?? 0,
+	);
+	const hasSparkToday = $derived(activeDay?.tasks.some((t) => t.source === 'spark') ?? false);
 	const sortedTasks = $derived(
 		[...(activeDay?.tasks ?? [])].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0)),
 	);
@@ -128,6 +132,7 @@
 		</section>
 	{:else if activeDay}
 		<AddTaskForm date={activeDay.date} />
+		<SparkButton date={activeDay.date} disabled={hasSparkToday} />
 
 		{#if sortedTasks.length === 0}
 			<section

@@ -55,6 +55,8 @@
 		</span>
 		{#if task.carriedFrom}
 			<span class="font-mono text-xs text-muted-foreground">From {task.carriedFrom}</span>
+		{:else if task.source === 'spark'}
+			<span class="text-xs text-muted-foreground">{site.sparkMetaLabel}</span>
 		{:else if task.jiraKey}
 			<span class="font-mono text-xs text-muted-foreground">{task.jiraKey}</span>
 		{/if}

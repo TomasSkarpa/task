@@ -32,6 +32,7 @@ Daily **tasks** (never "todos"). One day on the homepage. Recyclable via spillov
 | Fragment task (split one row) | `.cursor/skills/fragment-task/SKILL.md` |
 | Close day (API) | `.cursor/skills/close-day/SKILL.md` |
 | Remove tasks (API) | `.cursor/skills/remove-tasks/SKILL.md` |
+| Spark (random kindness nudge) | `.cursor/skills/spark/SKILL.md` |
 
 ## Data workflow
 
@@ -49,13 +50,14 @@ Daily **tasks** (never "todos"). One day on the homepage. Recyclable via spillov
 | `/close-day`, close today | `close-day` → `POST https://task.skarpa.dev/api/day/close` |
 | `/remove-tasks`, `remove 1,3` | `remove-tasks` → `GET /api/day`, then `POST /api/task/remove` |
 | `/add-task`, add task | `add-task` → `GET /api/day`, then `POST /api/task/add` |
+| `/spark`, spark task | `spark` → `GET /api/day`, then `POST /api/task/add-spark` (max one per day) |
 | `/fragment-task`, split task N | `fragment-task` Phase 1: propose; **split all** → add fragments + remove parent |
 | Mark task done | `POST https://task.skarpa.dev/api/task/toggle` |
 
 ## Day lifecycle
 
 - `status: open` → tasks editable; **Close day** available in UI
-- `status: closed` → homepage shows **Day is closed**; open tasks copied to next day
+- `status: closed` → homepage shows **Day is closed**; open tasks copied to next day (Sparks excluded)
 - `closedBy: manual | auto` records how the day closed
 
 Spillover logic is in `closeDay()` in `day-store.ts`. Skills call the API; do not duplicate file edits.
@@ -73,7 +75,7 @@ npm run check
 ## Svelte
 
 - Svelte 5 runes in `src/`
-- Prefer site components: `DayShell`, `TaskRow`, `CloseDayDialog`, `EmphasisText`, `ThemeToggle`
+- Prefer site components: `DayShell`, `TaskRow`, `SparkButton`, `CloseDayDialog`, `EmphasisText`, `ThemeToggle`
 - Use Svelte MCP `svelte-autofixer` when editing `.svelte` files
 
 ## Conventions

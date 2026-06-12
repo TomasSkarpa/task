@@ -1,6 +1,6 @@
 export type DayStatus = 'open' | 'closed';
 export type TaskStatus = 'open' | 'done';
-export type TaskSource = 'manual' | 'jira' | 'carryover';
+export type TaskSource = 'manual' | 'jira' | 'carryover' | 'spark';
 export type ClosedBy = 'manual' | 'auto';
 
 export type Task = {

@@ -24,6 +24,8 @@ UI chrome from `content/textations/site.md`. Task text is stored in Vercel Blob 
 | Empty day | No tasks yet. |
 | Add task | Add task |
 | Add task placeholder | What needs doing? |
+| Spark button | ♡ Spark |
+| Spark meta | Spark |
 
 ### Avoid
 

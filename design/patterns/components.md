@@ -9,6 +9,7 @@
 | `task-list` | `+page.svelte` | Task ul |
 | `task-row` | `TaskRow.svelte` | Checkbox + emphasis text + remove |
 | `add-task` | `AddTaskForm.svelte` | Text input + submit when day is open |
+| `spark` | `SparkButton.svelte` | Ghost **♡ Spark**; one random nudge per day |
 | `close-day-dialog` | `CloseDayDialog.svelte` | Double confirm modal |
 | `emphasis-text` | `EmphasisText.svelte` | `**bold**` parsing |
 | `task-row-surface` | `layout.css` | Task row hover, active, focus-within |

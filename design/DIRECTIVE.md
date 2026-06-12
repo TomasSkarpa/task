@@ -112,7 +112,7 @@ Noun-based, present tense, no jargon.
 
 ### Spillover rules
 
-1. On close, every task with `status: open` is copied to **next calendar day**.
+1. On close, every task with `status: open` is copied to **next calendar day**, except `source: spark` (Sparks stay on the closed day only).
 2. Spillover tasks get `source: carryover`, `carriedFrom: <closed-day-date>`.
 3. Duplicate by `id` or `jiraKey` on the target day: update in place, do not duplicate.
 4. Done tasks stay on the closed day only (historical record).
@@ -199,6 +199,7 @@ Task rows use `task-row-surface` from `layout.css`. Do not rely on color alone f
 | `task-row` | Checkbox, emphasis text, carryover meta |
 | `close-day` | Primary outline button → confirm dialog |
 | `close-day-dialog` | Modal: summary of open task count, confirm/cancel |
+| `spark` | Ghost **♡ Spark** button; one random nudge per day |
 
 Stack: Svelte 5 runes, shadcn-svelte primitives, Tailwind v4.
 
@@ -260,6 +261,7 @@ Keyboard: focus trap in modal, Escape cancels, visible focus rings.
 |-----------------|--------|
 | `/sync-day` or skill `sync-day-from-jira` | Phase 1: propose grouped tasks in chat; Phase 2: `POST /api/task/sync-jira` on task.skarpa.dev |
 | `/close-day` or skill `close-day` | Close today (or given date), spill open tasks |
+| `/spark` or skill `spark` | One random abstract kindness nudge per day; `POST /api/task/add-spark` |
 | Natural language in Cursor | "Add task …", "Mark done", "Remove task …" → `POST` task API on task.skarpa.dev |
 
 ### Rules for agents

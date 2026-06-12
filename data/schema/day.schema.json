@@ -51,7 +51,7 @@
 				},
 				"source": {
 					"type": "string",
-					"enum": ["manual", "jira", "carryover"]
+					"enum": ["manual", "jira", "carryover", "spark"]
 				},
 				"jiraKey": {
 					"type": ["string", "null"],
