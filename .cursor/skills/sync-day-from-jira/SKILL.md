@@ -1,12 +1,11 @@
 ---
 name: sync-day-from-jira
 description: >-
-  Two-step Jira sync for task.skarpa.dev. Step 1 (/sync-day): query Jira,
-  group tickets into topic lines, show numbered proposals in chat for
-  confirmation only (no file write, no API). Step 2 (user says create all or
-  create 1,3,4): POST selected tasks to https://task.skarpa.dev/api/task/sync-jira
-  (Vercel Blob persistence). Uses Atlassian MCP with Developer + Aftersales
-  Avengers JQL (not assignee).
+  Two-step Jira sync for task.skarpa.dev. Step 1 (/sync-day): wide-net Jira
+  query, ownership verdict per ticket (Developer, Tester, assignee, comments),
+  group included tickets into topic lines, show proposals + Excluded list in
+  chat (no API write). Step 2 (create all / create 1,3,4): POST to
+  https://task.skarpa.dev/api/task/sync-jira (Vercel Blob).
 disable-model-invocation: true
 ---
 
@@ -17,22 +16,18 @@ Two phases. **Phase 1 never writes data.** **Phase 2 writes live tasks** to [tas
 ## Before you start
 
 1. Read `AGENTS.md` and `data/schema/day.schema.json`
-2. Read [jql-reference.md](jql-reference.md) (site constants, JQL, statuses)
+2. Read [jql-reference.md](jql-reference.md) (JQL, ownership verdict, statuses)
 3. Determine today's date in **Europe/Prague** (same as `todayDateString()` in `src/lib/server/day-store.ts`)
 4. Read MCP tool schemas under the MCP descriptors folder before calling **user-atlassian-mcp**
 
-## What counts as "needs your attention"
+## Pipeline overview
 
-Include an issue only when **all** of these are true:
+1. **Wide-net JQL** (bucket 1 + 2): AA squad, pending status, sprint scope, and (`Developer` OR `assignee` OR `Tester` = you)
+2. **Ownership verdict** per candidate: status-aware primary actor + comment handoff checks
+3. **Group** included tickets only into topic lines
+4. **Propose** numbered tasks + **Excluded** audit list
 
-1. **Developer** is you (`Developer = currentUser()`). Do **not** use `assignee`.
-2. **Team** is Aftersales Avengers (`"Team[Team]" = "68d11c02-5275-4350-9883-d1738be2ee8e"`).
-3. **Status** is a pending-action status (dev, PR review, or test/ping QA). See [jql-reference.md](jql-reference.md).
-4. **Sprint scope:** in the **current open sprint**, **or** out of sprint with **recent activity** (recency window in jql-reference).
-
-Do **not** sync stale out-of-sprint backlog. Skip Done/Completed/Closed and statuses with no action on you.
-
-For **out of sprint**, deprioritize stale `[AUTOMATED TEST]` tickets unless they match bucket 2 recency rules.
+Do **not** sync stale out-of-sprint backlog. Skip Done/Completed/Closed. For out of sprint, deprioritize stale `[AUTOMATED TEST]` unless bucket 2 recency matches.
 
 ---
 
@@ -44,55 +39,62 @@ For **out of sprint**, deprioritize stale `[AUTOMATED TEST]` tickets unless they
 
 `GET` is not required; optionally note if the user already has open tasks on site. If you know the day is `closed`, stop and tell the user to open tomorrow or reopen the day first.
 
-### Step 2: Query Jira (two buckets)
+### Step 2: Query Jira (two buckets, wide net)
 
 Use **user-atlassian-mcp** `searchJiraIssuesUsingJql`. Cloud ID: `cbcbb760-4084-4288-8885-d669c0e5f487`.
 
 Run **bucket 1** and **bucket 2** JQL from [jql-reference.md](jql-reference.md). For bucket 2, compute the `updated >= -Nd` window from Europe/Prague weekday rules before calling MCP.
 
-Fetch fields: `summary`, `status`, `updated`, `Sprint`, `Team`, `assignee`.
+Fetch fields: `summary`, `status`, `updated`, `Sprint`, `Team`, `Developer`, `Tester`, `assignee`.
+
+Union and dedupe by issue key. Count = **candidates** (not yet on your day).
 
 Resolve the active sprint name (e.g. `AA - Sprint 44` via `customfield_10021` on any bucket 1 issue).
 
-### Step 3: Group issues into topics
+### Step 3: Ownership verdict (per candidate)
 
-Union bucket **1** and bucket **2**, dedupe by issue key, then **group**.
+For **each** deduped issue, apply [ownership verdict](jql-reference.md#ownership-verdict-per-ticket) from jql-reference:
 
-#### Grouping rules
+1. Map status to **dev**, **review**, or **test** bucket
+2. Check if you match the **primary actor** for that bucket
+3. If **borderline**, call `getJiraIssue` with `fields: ["comment"]` and read the last 3 comments
+4. Apply **exclude** rules for handoffs (your comment delegating to assignee, stale Developer after reassignment, etc.)
+5. Label ticket **include** or **exclude** with a one-line reason
 
-Merge issues into **one task row** when they share a work theme, for example:
+Only **include** tickets proceed to grouping. Track **exclude** reasons for Step 5.
 
-- Same country/market (`BATA CZ`, `Bata IN`, `Bata PE`, …)
-- Same feature stream (Czech easy return, store locator / ProManage, registration journey)
-- Same bracket tag (`[SFCC]`, `[MULE]`, `[AW EN]`) **and** clearly related summaries
-- Same email/transactional template area for one brand
+### Step 4: Group included issues into topics
 
-Keep **separate** tasks when markets, features, or actions are unrelated even if the tag matches.
+Group **included** tickets only. See grouping rules in [jql-reference.md](jql-reference.md#grouping-included-tickets-only).
+
+Topic text must reflect **included** work only. If one ticket in a theme was excluded, do not fold its summary into the line.
 
 #### Task text format (grouped)
-
-One line per topic. Do **not** paste full Jira summaries or list every key in the proposal line.
 
 ```
 <Verb> **<short topic label>**: <purpose>; <purpose>; <purpose>
 ```
 
-- **Verb:** Finish, Review, Unblock, Reply, Ship, or Debug (pick from dominant status in the group; see jql-reference).
-- **Topic label:** 2–6 words, emphasized with `**`.
-- **Purposes:** short clauses, separated by `;`. Lowercase, no ticket keys in the visible line.
+- **Verb:** Finish, Review, Unblock, Reply, Ship, or Debug (dominant status in the **included** group; see jql-reference)
+- **Topic label:** 2–6 words, emphasized with `**`
+- **Purposes:** short clauses, separated by `;`. Lowercase, no ticket keys in the visible line
 
-### Step 4: Report proposals in chat (numbered topics only)
+### Step 5: Report proposals in chat
 
-Present **grouped topic lines** as a numbered list for user confirmation. This is what the user reviews, not raw tickets.
+Present **grouped topic lines** as a numbered list. Always show counts: candidates → included → topics.
 
 ```markdown
-**Proposed tasks for YYYY-MM-DD** (AA - Sprint N · <ticket count> tickets → <topic count> topics)
+**Proposed tasks for YYYY-MM-DD** (AA - Sprint N · <candidate count> candidates → <included count> included → <topic count> topics)
 
 1) <grouped task line>
 2) <grouped task line>
 ...
 
-**Covers (traceability):** optional short mapping of topic number → issue keys, only if helpful. Keep tickets out of the main numbered list.
+**Covers (traceability):** topic number → issue keys (included only)
+
+**Excluded (<exclude count>):**
+- FSP-XXXXX → <one-line reason>
+- FSP-YYYYY → <one-line reason>
 
 Reply **create all** or **create 1, 3, 4** to add selected tasks to task.skarpa.dev.
 ```
@@ -100,8 +102,10 @@ Reply **create all** or **create 1, 3, 4** to add selected tasks to task.skarpa.
 Also tell the user:
 
 - Date and sprint name
-- Topic count vs ticket count
+- Candidate vs included vs topic counts
 - Phase 1 did not write anything; tasks appear only after they confirm
+
+If every candidate was excluded, say so and list **Excluded** only; do not invent topics.
 
 ### Prepare stable task payloads (internal, for Phase 2)
 
@@ -110,7 +114,7 @@ For each numbered proposal, keep this ready (do not write to disk):
 | Field | Value |
 |-------|-------|
 | `id` | `jira-group-<slug>` e.g. `jira-group-cz-withdrawal` |
-| `text` | grouped line |
+| `text` | grouped line (included work only) |
 | `status` | `open` |
 | `source` | `jira` |
 | `jiraKey` | `null` when multiple issues; single-issue groups may set the key |
@@ -142,7 +146,7 @@ curl -sS -X POST https://task.skarpa.dev/api/task/sync-jira \
   "tasks": [
     {
       "id": "jira-group-cz-withdrawal",
-      "text": "Follow up on **Czech contract withdrawal & easy return**: withdrawal on order detail and track order; SFCC resources and Resource Manager config; order return email content asset; footer translation for track and return",
+      "text": "Finish **Czech contract withdrawal & easy return**: withdrawal on order detail and track order; SFCC resources and Resource Manager config; order return email content asset; footer translation for track and return",
       "status": "open",
       "source": "jira",
       "jiraKey": null,
@@ -168,21 +172,34 @@ Use the Shell tool for the curl call. On non-2xx response, report the error body
 
 ---
 
-## Example grouped proposal (what the user sees)
+## Example Phase 1 output (ownership-aware)
 
-```
-1) Follow up on **Czech contract withdrawal & easy return**: withdrawal on order detail and track order; SFCC resources and Resource Manager config; order return email content asset; footer translation for track and return
+```markdown
+**Proposed tasks for 2026-06-12** (AA - Sprint 44 · 14 candidates → 11 included → 8 topics)
+
+1) Finish **Czech contract withdrawal & easy return**: withdrawal on order detail and track order; SFCC resources; return email asset; footer translation; Mule unshipped status analysis
+2) Finish **AW ISS confirmation email**: add store-pickup disclaimer on order confirmation for AW IT/ES
+...
+
+**Covers:** 1 → FSP-49437, FSP-49577, …; 2 → FSP-47299
+
+**Excluded (3):**
+- FSP-47441 → handed to Erick (assignee); your comment today delegated Selligent work
+- FSP-49700 → Vasileios owns Mule subtask (assignee)
+- FSP-46539 → Radek on parent story in Testing in DEV; you are not Tester
+
+Reply **create all** or **create 1, 2**.
 ```
 
 ## Example API task row (Phase 2 payload)
 
 ```json
 {
-  "id": "jira-group-cz-withdrawal",
-  "text": "Follow up on **Czech contract withdrawal & easy return**: withdrawal on order detail and track order; SFCC resources and Resource Manager config; order return email content asset; footer translation for track and return",
+  "id": "jira-group-aw-iss-confirmation",
+  "text": "Finish **AW ISS confirmation email**: add store-pickup disclaimer on order confirmation for AW IT/ES",
   "status": "open",
   "source": "jira",
-  "jiraKey": null,
+  "jiraKey": "FSP-47299",
   "carriedFrom": null
 }
 ```
@@ -195,5 +212,5 @@ After Phase 1 proposals, map declined proposal numbers to stable `id` values fro
 
 ## Additional reference
 
-- JQL and constants: [jql-reference.md](jql-reference.md)
+- JQL, ownership, grouping: [jql-reference.md](jql-reference.md)
 - Persistence: Vercel Blob (`BLOB_STORE_ID` on deploy; `vercel env pull` for local dev)
