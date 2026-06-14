@@ -6,7 +6,7 @@ import type { ClosedBy, Day, DaySummary, Task } from '$lib/types/day';
 
 export class SparkAlreadyAddedError extends Error {
 	constructor() {
-		super('Spark already added today');
+		super('Spark already used today');
 		this.name = 'SparkAlreadyAddedError';
 	}
 }
@@ -46,7 +46,15 @@ function emptyDay(date: string): Day {
 		status: 'open',
 		closedAt: null,
 		closedBy: null,
+		sparkUsed: false,
 		tasks: [],
+	};
+}
+
+function normalizeDay(day: Day): Day {
+	return {
+		...day,
+		sparkUsed: day.sparkUsed ?? day.tasks.some(isSparkTask),
 	};
 }
 
@@ -96,7 +104,7 @@ export async function loadDay(date: string): Promise<Day> {
 	}
 
 	const day = await readDay(date);
-	return day ?? emptyDay(date);
+	return day ? normalizeDay(day) : emptyDay(date);
 }
 
 export async function loadStoredDay(date: string): Promise<Day | null> {
@@ -252,7 +260,7 @@ export async function addSparkTask(date: string): Promise<Day> {
 		return day;
 	}
 
-	if (day.tasks.some(isSparkTask)) {
+	if (day.sparkUsed) {
 		throw new SparkAlreadyAddedError();
 	}
 
@@ -267,6 +275,7 @@ export async function addSparkTask(date: string): Promise<Day> {
 		sort: maxSort + 1,
 	};
 
+	day.sparkUsed = true;
 	day.tasks = [...day.tasks, task];
 	await saveDay(day);
 	return day;

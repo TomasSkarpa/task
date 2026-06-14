@@ -24,7 +24,7 @@ Sparks are abstract, person-agnostic nudges. The user chooses who to act on, if 
 
 | Rule | Detail |
 |------|--------|
-| **One per day** | At most one task with `source: spark` on a given date. Second add returns `409`. |
+| **One per day** | One Spark generation per calendar day (`day.sparkUsed`). Removing the task does not allow another. Second add returns `409`. |
 | **No spillover** | Open Sparks do not move to the next day on close. |
 | **Abstract only** | Prompts never name a specific person. |
 
@@ -45,7 +45,7 @@ curl -sS 'https://task.skarpa.dev/api/day'
 
 If `day.status === 'closed'`, stop and tell the user the day is closed.
 
-If any task has `source === 'spark'`, stop and tell the user they already have today's Spark.
+If `day.sparkUsed === true` (or any task has `source === 'spark'` on older days without the flag), stop and tell the user today's Spark was already used.
 
 ## Step 2: POST to API
 
@@ -65,7 +65,7 @@ Report:
 - The Spark task line added (read `text` from the new `source: spark` task)
 - Link to [task.skarpa.dev](https://task.skarpa.dev/)
 
-On `409`, say today's Spark is already on the list. On non-2xx, report the error body.
+On `409`, say today's Spark was already used. On non-2xx, report the error body.
 
 ## Related skills
 

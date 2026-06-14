@@ -18,6 +18,8 @@ export type Day = {
 	status: DayStatus;
 	closedAt: string | null;
 	closedBy: ClosedBy | null;
+	/** Set when Spark is generated; stays true even if the Spark task is removed. */
+	sparkUsed: boolean;
 	tasks: Task[];
 };
 

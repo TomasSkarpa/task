@@ -13,7 +13,7 @@ alwaysApply: false
 - Task text: actionable line; emphasize keys with `**KEY**`
 - Preserve `id` and `jiraKey` when merging; dedupe on `jiraKey`
 - Spillover: `source: carryover`, `carriedFrom: <date>`; `source: spark` never spills
-- Spark: max one per day; prompts in `content/spark/prompts.md`
+- Spark: max one generation per day (`sparkUsed` on day); prompts in `content/spark/prompts.md`
 - Do not close days without explicit user request
 - Add manual tasks via `.cursor/skills/add-task/SKILL.md` (`POST /api/task/add`)
 - Split one task into focused rows via `.cursor/skills/fragment-task/SKILL.md` (add + remove parent)

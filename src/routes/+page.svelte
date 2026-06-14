@@ -38,7 +38,7 @@
 	const openTaskCount = $derived(
 		activeDay?.tasks.filter((t) => t.status === 'open' && t.source !== 'spark').length ?? 0,
 	);
-	const hasSparkToday = $derived(activeDay?.tasks.some((t) => t.source === 'spark') ?? false);
+	const hasSparkToday = $derived(activeDay?.sparkUsed ?? false);
 	const sortedTasks = $derived(
 		[...(activeDay?.tasks ?? [])].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0)),
 	);

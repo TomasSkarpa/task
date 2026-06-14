@@ -24,6 +24,10 @@
 			"type": ["string", "null"],
 			"enum": ["manual", "auto", null]
 		},
+		"sparkUsed": {
+			"type": "boolean",
+			"description": "True after the day's single Spark has been generated; survives task removal"
+		},
 		"tasks": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/task" }
