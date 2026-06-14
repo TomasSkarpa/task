@@ -262,6 +262,7 @@ Keyboard: focus trap in modal, Escape cancels, visible focus rings.
 | `/sync-day` or skill `sync-day-from-jira` | Phase 1: propose grouped tasks in chat; Phase 2: `POST /api/task/sync-jira` on task.skarpa.dev |
 | `/close-day` or skill `close-day` | Close today (or given date), spill open tasks |
 | `/spark` or skill `spark` | One random abstract kindness nudge per day; `POST /api/task/add-spark` |
+| `/catch-up-from-jira` or skill `catch-up-from-jira` | Jira reply debt (7d); read-only report; optional **create catch-up 1,2** via add-task |
 | Natural language in Cursor | "Add task …", "Mark done", "Remove task …" → `POST` task API on task.skarpa.dev |
 
 ### Rules for agents

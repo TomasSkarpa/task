@@ -33,6 +33,7 @@ Daily **tasks** (never "todos"). One day on the homepage. Recyclable via spillov
 | Close day (API) | `.cursor/skills/close-day/SKILL.md` |
 | Remove tasks (API) | `.cursor/skills/remove-tasks/SKILL.md` |
 | Spark (random kindness nudge) | `.cursor/skills/spark/SKILL.md` |
+| Catch-up from Jira (reply debt, 7d) | `.cursor/skills/catch-up-from-jira/SKILL.md` |
 
 ## Data workflow
 
@@ -51,6 +52,7 @@ Daily **tasks** (never "todos"). One day on the homepage. Recyclable via spillov
 | `/remove-tasks`, `remove 1,3` | `remove-tasks` → `GET /api/day`, then `POST /api/task/remove` |
 | `/add-task`, add task | `add-task` → `GET /api/day`, then `POST /api/task/add` |
 | `/spark`, spark task | `spark` → `GET /api/day`, then `POST /api/task/add-spark` (max one per day) |
+| `/catch-up-from-jira`, catch up from Jira | `catch-up-from-jira` → Jira scan (read-only); **create catch-up 1,2** → `add-task` |
 | `/fragment-task`, split task N | `fragment-task` Phase 1: propose; **split all** → add fragments + remove parent |
 | Mark task done | `POST https://task.skarpa.dev/api/task/toggle` |
 

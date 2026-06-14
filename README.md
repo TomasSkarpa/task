@@ -26,6 +26,7 @@ Open [http://localhost:5173](http://localhost:5173). Day data lives in **Vercel 
 | `/fragment-task` | `.cursor/skills/fragment-task` |
 | `/close-day` | `.cursor/skills/close-day` |
 | `/remove-tasks` | `.cursor/skills/remove-tasks` |
+| `/catch-up-from-jira` | `.cursor/skills/catch-up-from-jira` |
 
 Skills mutate data via `https://task.skarpa.dev/api/*` (or localhost when developing).
 
