@@ -50,7 +50,51 @@ function emptyDay(date: string): Day {
 	};
 }
 
+let autoCloseInProgress = false;
+
+/**
+ * Closes every stored day before today that is still open, oldest first.
+ * Uses the same spillover rules as manual close (`closedBy: auto`).
+ */
+export async function autoClosePastOpenDays(now = new Date()): Promise<void> {
+	if (autoCloseInProgress) {
+		return;
+	}
+
+	autoCloseInProgress = true;
+
+	try {
+		const today = todayDateString(now);
+
+		while (true) {
+			const dates = await listStoredDayDates();
+			let oldestOpenPast: string | null = null;
+
+			for (const date of dates.filter((d) => d < today).sort()) {
+				const day = await readDay(date);
+
+				if (day?.status === 'open') {
+					oldestOpenPast = date;
+					break;
+				}
+			}
+
+			if (!oldestOpenPast) {
+				break;
+			}
+
+			await closeDay(oldestOpenPast, 'auto', now);
+		}
+	} finally {
+		autoCloseInProgress = false;
+	}
+}
+
 export async function loadDay(date: string): Promise<Day> {
+	if (!autoCloseInProgress && date === todayDateString()) {
+		await autoClosePastOpenDays();
+	}
+
 	const day = await readDay(date);
 	return day ?? emptyDay(date);
 }
@@ -60,6 +104,8 @@ export async function loadStoredDay(date: string): Promise<Day | null> {
 }
 
 export async function loadDaySummaries(): Promise<DaySummary[]> {
+	await autoClosePastOpenDays();
+
 	const dates = await listStoredDayDates();
 	const summaries = await Promise.all(
 		dates.map(async (date) => {

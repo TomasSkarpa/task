@@ -59,6 +59,7 @@ Daily **tasks** (never "todos"). One day on the homepage. Recyclable via spillov
 - `status: open` → tasks editable; **Close day** available in UI
 - `status: closed` → homepage shows **Day is closed**; open tasks copied to next day (Sparks excluded)
 - `closedBy: manual | auto` records how the day closed
+- **Auto close:** on first load of today (homepage, API, history), any prior open days close in order with spillover (`closedBy: auto`)
 
 Spillover logic is in `closeDay()` in `day-store.ts`. Skills call the API; do not duplicate file edits.
 

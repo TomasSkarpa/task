@@ -59,6 +59,8 @@ Report:
 - Next date if spillover happened
 - Link to [task.skarpa.dev](https://task.skarpa.dev/)
 
-## Auto close (optional cron)
+## Auto close
 
-Same API with server-side `closedBy: auto` (not exposed on public route yet). For cron, call `closeDay(date, 'auto')` in a future scheduled job or extend the API when needed.
+On the first request after the calendar day changes (`Europe/Prague`), the server closes any still-open days before today (oldest first) with `closedBy: auto` and the same spillover rules. Triggered from `loadDay(today)` and `loadDaySummaries()` in `day-store.ts`.
+
+Manual close via API still uses `closedBy: manual`.
