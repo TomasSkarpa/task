@@ -9,3 +9,7 @@ build
 data/days/*.json
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+tests/e2e/results/
+tests/e2e/reports/
+playwright-report/
+test-results/
