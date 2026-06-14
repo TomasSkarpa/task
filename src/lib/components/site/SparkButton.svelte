@@ -1,14 +1,13 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { site } from '$lib/data/site';
-	import { invalidateAll } from '$app/navigation';
 
 	let {
-		date,
 		disabled = false,
+		onAdd,
 	}: {
-		date: string;
 		disabled?: boolean;
+		onAdd: () => Promise<boolean>;
 	} = $props();
 
 	let adding = $state(false);
@@ -18,15 +17,7 @@
 
 		adding = true;
 		try {
-			const response = await fetch('/api/task/add-spark', {
-				method: 'POST',
-				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ date }),
-			});
-
-			if (!response.ok) return;
-
-			await invalidateAll();
+			await onAdd();
 		} finally {
 			adding = false;
 		}

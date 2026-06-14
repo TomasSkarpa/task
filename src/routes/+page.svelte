@@ -7,7 +7,6 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { site } from '$lib/data/site';
 	import type { Day, Task, TaskStatus } from '$lib/types/day';
-	import { invalidateAll } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { cubicOut } from 'svelte/easing';
 	import { flip } from 'svelte/animate';
@@ -63,6 +62,11 @@
 		}
 
 		return applyTaskStatus(day, taskId, serverTask.status);
+	}
+
+	function commitDay(day: Day): void {
+		dayView = day;
+		syncedServerDay = JSON.stringify(day);
 	}
 
 	function sortTasks(tasks: Task[]): Task[] {
@@ -155,7 +159,26 @@
 			}
 
 			const payload = (await response.json()) as { day: Day };
-			dayView = payload.day;
+			commitDay(payload.day);
+		});
+	}
+
+	async function addSpark(): Promise<boolean> {
+		return enqueueDayMutation(async () => {
+			const day = currentDay();
+			if (!day) return false;
+
+			const response = await fetch('/api/task/add-spark', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ date: day.date }),
+			});
+
+			if (!response.ok) return false;
+
+			const payload = (await response.json()) as { day: Day };
+			commitDay(payload.day);
+			return true;
 		});
 	}
 
@@ -173,8 +196,7 @@
 			if (!response.ok) return false;
 
 			const payload = (await response.json()) as { day: Day };
-			dayView = payload.day;
-			syncedServerDay = JSON.stringify(payload.day);
+			commitDay(payload.day);
 			return true;
 		});
 	}
@@ -185,14 +207,18 @@
 
 		closing = true;
 		try {
-			const response = await fetch('/api/day/close', {
-				method: 'POST',
-				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ date: day.date }),
-			});
+			await enqueueDayMutation(async () => {
+				const response = await fetch('/api/day/close', {
+					method: 'POST',
+					headers: { 'content-type': 'application/json' },
+					body: JSON.stringify({ date: day.date }),
+				});
 
-			if (!response.ok) return;
-			await invalidateAll();
+				if (!response.ok) return;
+
+				const payload = (await response.json()) as { closed: Day };
+				commitDay(payload.closed);
+			});
 		} finally {
 			closing = false;
 		}
@@ -221,7 +247,7 @@
 		</section>
 	{:else if activeDay}
 		<AddTaskForm onAdd={addTask} />
-		<SparkButton date={activeDay.date} disabled={hasSparkToday} />
+		<SparkButton disabled={hasSparkToday} onAdd={addSpark} />
 
 		{#if sortedTasks.length === 0}
 			<section
