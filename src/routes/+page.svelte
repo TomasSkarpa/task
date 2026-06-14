@@ -6,7 +6,7 @@
 	import TaskRow from '$lib/components/site/TaskRow.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { site } from '$lib/data/site';
-	import type { Day } from '$lib/types/day';
+	import type { Day, Task, TaskStatus } from '$lib/types/day';
 	import { invalidateAll } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { cubicOut } from 'svelte/easing';
@@ -20,6 +20,7 @@
 	let dayView = $state<Day | undefined>();
 	let reduceMotion = $state(false);
 	let syncedServerDay = '';
+	let mutationQueue = Promise.resolve();
 
 	onMount(() => {
 		reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -37,6 +38,35 @@
 
 	function currentDay(): Day | undefined {
 		return dayView ?? data.day;
+	}
+
+	function enqueueDayMutation<T>(fn: () => Promise<T>): Promise<T> {
+		const next = mutationQueue.then(fn, fn);
+		mutationQueue = next.then(
+			() => undefined,
+			() => undefined,
+		);
+		return next;
+	}
+
+	function applyTaskStatus(day: Day, taskId: string, status: TaskStatus): Day {
+		return {
+			...day,
+			tasks: day.tasks.map((task) => (task.id === taskId ? { ...task, status } : task)),
+		};
+	}
+
+	function applyServerTask(day: Day, serverDay: Day, taskId: string): Day {
+		const serverTask = serverDay.tasks.find((task) => task.id === taskId);
+		if (!serverTask) {
+			return day;
+		}
+
+		return applyTaskStatus(day, taskId, serverTask.status);
+	}
+
+	function sortTasks(tasks: Task[]): Task[] {
+		return [...tasks].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
 	}
 
 	const listMotionMs = $derived(reduceMotion ? 0 : 220);
@@ -67,54 +97,86 @@
 		const day = currentDay();
 		if (!day) return;
 
-		const snapshot = day;
-		dayView = {
-			...day,
-			tasks: day.tasks.map((task) =>
-				task.id === taskId
-					? { ...task, status: task.status === 'done' ? 'open' : 'done' }
-					: task,
-			),
-		};
+		const task = day.tasks.find((entry) => entry.id === taskId);
+		if (!task) return;
 
-		const response = await fetch('/api/task/toggle', {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ date: day.date, taskId }),
+		const previousStatus = task.status;
+		const optimisticStatus: TaskStatus = previousStatus === 'done' ? 'open' : 'done';
+		dayView = applyTaskStatus(day, taskId, optimisticStatus);
+
+		void enqueueDayMutation(async () => {
+			const response = await fetch('/api/task/toggle', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ date: day.date, taskId }),
+			});
+
+			if (!response.ok) {
+				const current = currentDay();
+				if (current) {
+					dayView = applyTaskStatus(current, taskId, previousStatus);
+				}
+				return;
+			}
+
+			const payload = (await response.json()) as { day: Day };
+			const current = currentDay();
+			if (current) {
+				dayView = applyServerTask(current, payload.day, taskId);
+			}
 		});
-
-		if (!response.ok) {
-			dayView = snapshot;
-			return;
-		}
-
-		const payload = (await response.json()) as { day: Day };
-		dayView = payload.day;
 	}
 
 	async function removeTask(taskId: string) {
 		const day = currentDay();
 		if (!day) return;
 
-		const snapshot = day;
+		const removed = day.tasks.find((task) => task.id === taskId);
+		if (!removed) return;
+
 		dayView = {
 			...day,
 			tasks: day.tasks.filter((task) => task.id !== taskId),
 		};
 
-		const response = await fetch('/api/task/remove', {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ date: day.date, taskId }),
+		void enqueueDayMutation(async () => {
+			const response = await fetch('/api/task/remove', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ date: day.date, taskId }),
+			});
+
+			if (!response.ok) {
+				const current = currentDay();
+				if (current && !current.tasks.some((task) => task.id === taskId)) {
+					dayView = { ...current, tasks: sortTasks([...current.tasks, removed]) };
+				}
+				return;
+			}
+
+			const payload = (await response.json()) as { day: Day };
+			dayView = payload.day;
 		});
+	}
 
-		if (!response.ok) {
-			dayView = snapshot;
-			return;
-		}
+	async function addTask(text: string): Promise<boolean> {
+		return enqueueDayMutation(async () => {
+			const day = currentDay();
+			if (!day) return false;
 
-		const payload = (await response.json()) as { day: Day };
-		dayView = payload.day;
+			const response = await fetch('/api/task/add', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ date: day.date, text }),
+			});
+
+			if (!response.ok) return false;
+
+			const payload = (await response.json()) as { day: Day };
+			dayView = payload.day;
+			syncedServerDay = JSON.stringify(payload.day);
+			return true;
+		});
 	}
 
 	async function closeDay() {
@@ -158,7 +220,7 @@
 			<p class="mt-2 text-sm text-muted-foreground">Open tasks moved to the next day.</p>
 		</section>
 	{:else if activeDay}
-		<AddTaskForm date={activeDay.date} />
+		<AddTaskForm onAdd={addTask} />
 		<SparkButton date={activeDay.date} disabled={hasSparkToday} />
 
 		{#if sortedTasks.length === 0}

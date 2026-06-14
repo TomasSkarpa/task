@@ -2,9 +2,12 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { site } from '$lib/data/site';
-	import { invalidateAll } from '$app/navigation';
 
-	let { date }: { date: string } = $props();
+	let {
+		onAdd,
+	}: {
+		onAdd: (text: string) => Promise<boolean>;
+	} = $props();
 
 	let text = $state('');
 	let adding = $state(false);
@@ -17,16 +20,10 @@
 
 		adding = true;
 		try {
-			const response = await fetch('/api/task/add', {
-				method: 'POST',
-				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ date, text: value }),
-			});
-
-			if (!response.ok) return;
-
-			text = '';
-			await invalidateAll();
+			const added = await onAdd(value);
+			if (added) {
+				text = '';
+			}
 		} finally {
 			adding = false;
 		}
