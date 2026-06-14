@@ -27,7 +27,9 @@
 		if (removing || disabled) return;
 
 		removing = true;
-		onRemove(task.id);
+		Promise.resolve(onRemove(task.id)).finally(() => {
+			removing = false;
+		});
 	}
 </script>
 

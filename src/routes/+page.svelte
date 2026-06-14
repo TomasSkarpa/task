@@ -19,16 +19,25 @@
 	let closing = $state(false);
 	let dayView = $state<Day | undefined>();
 	let reduceMotion = $state(false);
+	let syncedServerDay = '';
 
 	onMount(() => {
 		reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 	});
 
 	$effect.pre(() => {
-		dayView = data.day;
+		const fingerprint = JSON.stringify(data.day);
+		if (fingerprint !== syncedServerDay) {
+			syncedServerDay = fingerprint;
+			dayView = data.day;
+		}
 	});
 
 	const activeDay = $derived(dayView ?? data.day);
+
+	function currentDay(): Day | undefined {
+		return dayView ?? data.day;
+	}
 
 	const listMotionMs = $derived(reduceMotion ? 0 : 220);
 	const emptyFadeMs = $derived(reduceMotion ? 0 : 200);
@@ -55,31 +64,48 @@
 	});
 
 	async function toggleTask(taskId: string) {
-		if (!dayView) return;
+		const day = currentDay();
+		if (!day) return;
+
+		const snapshot = day;
+		dayView = {
+			...day,
+			tasks: day.tasks.map((task) =>
+				task.id === taskId
+					? { ...task, status: task.status === 'done' ? 'open' : 'done' }
+					: task,
+			),
+		};
 
 		const response = await fetch('/api/task/toggle', {
 			method: 'POST',
 			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ date: dayView.date, taskId }),
+			body: JSON.stringify({ date: day.date, taskId }),
 		});
 
-		if (!response.ok) return;
-		await invalidateAll();
+		if (!response.ok) {
+			dayView = snapshot;
+			return;
+		}
+
+		const payload = (await response.json()) as { day: Day };
+		dayView = payload.day;
 	}
 
 	async function removeTask(taskId: string) {
-		if (!dayView) return;
+		const day = currentDay();
+		if (!day) return;
 
-		const snapshot = dayView;
+		const snapshot = day;
 		dayView = {
-			...dayView,
-			tasks: dayView.tasks.filter((task) => task.id !== taskId),
+			...day,
+			tasks: day.tasks.filter((task) => task.id !== taskId),
 		};
 
 		const response = await fetch('/api/task/remove', {
 			method: 'POST',
 			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ date: dayView.date, taskId }),
+			body: JSON.stringify({ date: day.date, taskId }),
 		});
 
 		if (!response.ok) {
@@ -92,14 +118,15 @@
 	}
 
 	async function closeDay() {
-		if (!dayView) return;
+		const day = currentDay();
+		if (!day) return;
 
 		closing = true;
 		try {
 			const response = await fetch('/api/day/close', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ date: dayView.date }),
+				body: JSON.stringify({ date: day.date }),
 			});
 
 			if (!response.ok) return;
