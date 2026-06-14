@@ -8,9 +8,7 @@
 	import { site } from '$lib/data/site';
 	import type { Day, Task, TaskStatus } from '$lib/types/day';
 	import { onMount } from 'svelte';
-	import { cubicOut } from 'svelte/easing';
-	import { flip } from 'svelte/animate';
-	import { fade, slide } from 'svelte/transition';
+	import { fade } from 'svelte/transition';
 
 	let { data } = $props();
 
@@ -67,6 +65,13 @@
 	function commitDay(day: Day): void {
 		dayView = day;
 		syncedServerDay = JSON.stringify(day);
+	}
+
+	function applyRemoveSuccess(current: Day, serverDay: Day): Day {
+		return {
+			...serverDay,
+			tasks: current.tasks,
+		};
 	}
 
 	function sortTasks(tasks: Task[]): Task[] {
@@ -159,7 +164,20 @@
 			}
 
 			const payload = (await response.json()) as { day: Day };
-			commitDay(payload.day);
+			const current = currentDay();
+			if (current) {
+				const merged = applyRemoveSuccess(current, payload.day);
+				dayView = merged;
+
+				const serverIds = new Set(payload.day.tasks.map((task) => task.id));
+				const matchesServer =
+					merged.tasks.length === payload.day.tasks.length &&
+					merged.tasks.every((task) => serverIds.has(task.id));
+
+				if (matchesServer) {
+					syncedServerDay = JSON.stringify(payload.day);
+				}
+			}
 		});
 	}
 
@@ -260,10 +278,9 @@
 			<ul class="task-list flex flex-col gap-2" aria-label="Today's tasks">
 				{#each sortedTasks as task (task.id)}
 					<li
-						class="task-row group/task-row flex items-start gap-2 overflow-hidden"
+						class="task-row group/task-row flex items-start gap-2"
 						in:fade={{ duration: listMotionMs * 0.7 }}
-						out:slide={{ duration: listMotionMs, easing: cubicOut }}
-						animate:flip={{ duration: listMotionMs, easing: cubicOut }}
+						out:fade={{ duration: listMotionMs * 0.5 }}
 					>
 						<TaskRow {task} onToggle={toggleTask} onRemove={removeTask} />
 					</li>
