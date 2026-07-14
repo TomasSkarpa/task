@@ -13,3 +13,4 @@ tests/e2e/results/
 tests/e2e/reports/
 playwright-report/
 test-results/
+.env*
