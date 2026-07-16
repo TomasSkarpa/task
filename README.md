@@ -50,7 +50,8 @@ Target: **task.skarpa.dev** on Vercel.
 
 Vercel Cron calls `/api/cron/workday-reminder` every weekday at 09:15 Europe/Prague.
 The two UTC schedules in `vercel.json` cover both daylight-saving offsets; the route's
-Prague-local guard ensures only the correct invocation posts. Configure these project
+Prague-local weekday guard accepts delayed Hobby-plan invocations. A Blob receipt ensures
+that multiple invocations send only once per date. Configure these project
 environment variables in Vercel:
 
 - `CRON_SECRET`: a random secret Vercel sends to cron routes

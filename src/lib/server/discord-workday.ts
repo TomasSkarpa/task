@@ -1,4 +1,5 @@
 import type { Day, Task } from '$lib/types/day';
+import { get, put } from '@vercel/blob';
 
 const DISCORD_CONTENT_LIMIT = 2_000;
 const TASKS_URL = 'https://task.skarpa.dev/';
@@ -68,7 +69,27 @@ export function pragueWorkdayTime(now = new Date()): {
 	};
 }
 
-export function isPragueWorkdayMorning(now = new Date()): boolean {
-	const { weekday, hour } = pragueWorkdayTime(now);
-	return !['Sat', 'Sun'].includes(weekday) && hour === '09';
+export function isPragueWeekday(now = new Date()): boolean {
+	return !['Sat', 'Sun'].includes(pragueWorkdayTime(now).weekday);
+}
+
+function receiptPath(date: string): string {
+	return `notifications/workday/${date}.json`;
+}
+
+export async function wasWorkdayReminderSent(date: string): Promise<boolean> {
+	try {
+		const result = await get(receiptPath(date), { access: 'private', useCache: false });
+		return result?.statusCode === 200;
+	} catch {
+		return false;
+	}
+}
+
+export async function markWorkdayReminderSent(date: string): Promise<void> {
+	await put(receiptPath(date), JSON.stringify({ date, sentAt: new Date().toISOString() }), {
+		access: 'private',
+		addRandomSuffix: false,
+		allowOverwrite: true,
+	});
 }

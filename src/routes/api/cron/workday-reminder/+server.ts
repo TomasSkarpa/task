@@ -1,8 +1,10 @@
 import { env } from '$env/dynamic/private';
 import {
 	buildWorkdayMessage,
-	isPragueWorkdayMorning,
+	isPragueWeekday,
+	markWorkdayReminderSent,
 	pragueWorkdayTime,
+	wasWorkdayReminderSent,
 } from '$lib/server/discord-workday';
 import { loadDay } from '$lib/server/day-store';
 import { error, json } from '@sveltejs/kit';
@@ -13,8 +15,8 @@ export const GET: RequestHandler = async ({ request }) => {
 		error(401, 'Unauthorized');
 	}
 
-	if (!isPragueWorkdayMorning()) {
-		return json({ sent: false, reason: 'Outside the Prague weekday 09:00 hour' });
+	if (!isPragueWeekday()) {
+		return json({ sent: false, reason: 'Weekend in Prague' });
 	}
 
 	if (!env.DISCORD_WORKDAY_WEBHOOK_URL) {
@@ -22,6 +24,10 @@ export const GET: RequestHandler = async ({ request }) => {
 	}
 
 	const { date } = pragueWorkdayTime();
+	if (await wasWorkdayReminderSent(date)) {
+		return json({ sent: false, reason: 'Already sent', date });
+	}
+
 	const day = await loadDay(date);
 	const response = await fetch(`${env.DISCORD_WORKDAY_WEBHOOK_URL}?wait=true`, {
 		method: 'POST',
@@ -36,6 +42,8 @@ export const GET: RequestHandler = async ({ request }) => {
 		console.error('Discord workday reminder failed', response.status, await response.text());
 		error(502, 'Discord rejected the workday reminder');
 	}
+
+	await markWorkdayReminderSent(date);
 
 	return json({ sent: true, date, openTasks: day.tasks.filter((task) => task.status === 'open').length });
 };
